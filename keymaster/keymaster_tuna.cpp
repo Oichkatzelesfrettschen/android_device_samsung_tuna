@@ -36,7 +36,7 @@
 #include <cryptoki.h>
 #include <pkcs11.h>
 
-#include <UniquePtr.h>
+#include <memory>
 
 typedef keymaster0_device keymaster_device_t;
 typedef keymaster0_device keymaster_device;
@@ -53,27 +53,27 @@ struct EVP_PKEY_Delete {
         EVP_PKEY_free(p);
     }
 };
-typedef UniquePtr<EVP_PKEY, EVP_PKEY_Delete> Unique_EVP_PKEY;
+typedef std::unique_ptr<EVP_PKEY, EVP_PKEY_Delete> Unique_EVP_PKEY;
 
 struct RSA_Delete {
     void operator()(RSA* p) const {
         RSA_free(p);
     }
 };
-typedef UniquePtr<RSA, RSA_Delete> Unique_RSA;
+typedef std::unique_ptr<RSA, RSA_Delete> Unique_RSA;
 
 struct PKCS8_PRIV_KEY_INFO_Delete {
     void operator()(PKCS8_PRIV_KEY_INFO* p) const {
         PKCS8_PRIV_KEY_INFO_free(p);
     }
 };
-typedef UniquePtr<PKCS8_PRIV_KEY_INFO, PKCS8_PRIV_KEY_INFO_Delete> Unique_PKCS8_PRIV_KEY_INFO;
+typedef std::unique_ptr<PKCS8_PRIV_KEY_INFO, PKCS8_PRIV_KEY_INFO_Delete> Unique_PKCS8_PRIV_KEY_INFO;
 
-typedef UniquePtr<keymaster_device_t> Unique_keymaster_device_t;
+typedef std::unique_ptr<keymaster_device_t> Unique_keymaster_device_t;
 
-typedef UniquePtr<CK_BYTE[]> Unique_CK_BYTE;
+typedef std::unique_ptr<CK_BYTE[]> Unique_CK_BYTE;
 
-typedef UniquePtr<CK_ATTRIBUTE[]> Unique_CK_ATTRIBUTE;
+typedef std::unique_ptr<CK_ATTRIBUTE[]> Unique_CK_ATTRIBUTE;
 
 class ByteArray {
 public:
@@ -110,7 +110,7 @@ private:
     CK_BYTE* mArray;
     size_t mLength;
 };
-typedef UniquePtr<ByteArray> Unique_ByteArray;
+typedef std::unique_ptr<ByteArray> Unique_ByteArray;
 
 class CryptoSession {
 public:
@@ -691,7 +691,7 @@ static int tee_get_keypair_public(const keymaster_device* dev,
         return -1;
     }
 
-    UniquePtr<uint8_t> key(static_cast<uint8_t*>(malloc(len)));
+    std::unique_ptr<uint8_t, decltype(&free)> key(static_cast<uint8_t*>(malloc(len)), free);
     if (key.get() == NULL) {
         ALOGE("Could not allocate memory for public key data");
         return -1;
@@ -791,7 +791,7 @@ static int tee_sign_data(const keymaster_device_t* dev,
         return -1;
     }
 
-    UniquePtr<uint8_t[]> finalSignature(new uint8_t[signatureLength]);
+    std::unique_ptr<uint8_t[]> finalSignature(new uint8_t[signatureLength]);
     if (finalSignature.get() == NULL) {
         ALOGE("Couldn't allocate memory to copy signature");
         return -1;
