@@ -46,8 +46,8 @@ void shim_set_ref_location(AGpsRefLocation *agps_reflocation, size_t sz_struct) 
 	vendor_ref.u.cellID.lac = agps_reflocation->u.cellID.lac;
 	vendor_ref.u.cellID.cid = agps_reflocation->u.cellID.cid;
 	vendor_ref.u.mac = agps_reflocation->u.mac;
-	ALOGD("%s: Size of AGpsRefLocation              : %d", __func__, sizeof(AGpsRefLocation));
-	ALOGD("%s: Size of vendor's AGpsRefLocationNoLTE: %d", __func__, sizeof(AGpsRefLocationNoLTE));
+	ALOGD("%s: Size of AGpsRefLocation              : %zu", __func__, sizeof(AGpsRefLocation));
+	ALOGD("%s: Size of vendor's AGpsRefLocationNoLTE: %zu", __func__, sizeof(AGpsRefLocationNoLTE));
 
 	vendor_set_ref_location(&vendor_ref, sizeof(AGpsRefLocationNoLTE));
 	ALOGD("%s: Executed vendor's set_ref_location with following parameters:", __func__);
@@ -103,7 +103,9 @@ int shim_init (GpsCallbacks* gpsCallbacks) {
 }
 
 const GpsInterface* shim_get_gps_interface(struct gps_device_t* dev) {
-	GpsInterface *halInterface = vendor_get_gps_interface(dev);
+	/* The vendor table lives in the blob's writable data; the shim swaps
+	 * two of its entry points in place. */
+	GpsInterface *halInterface = (GpsInterface *)vendor_get_gps_interface(dev);
 
 	ALOGD("%s: shimming vendor get_extension", __func__);
 	vendor_get_extension = halInterface->get_extension;
@@ -119,7 +121,6 @@ const GpsInterface* shim_get_gps_interface(struct gps_device_t* dev) {
 static int open_gps(const struct hw_module_t* module, char const* name,
 		struct hw_device_t** device) {
 	void *realGpsLib;
-	int gpsHalResult;
 	struct hw_module_t *realHalSym;
 
 	struct gps_device_t **gps = (struct gps_device_t **)device;

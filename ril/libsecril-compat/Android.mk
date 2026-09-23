@@ -5,12 +5,14 @@ LOCAL_MODULE_TAGS := optional
 
 LOCAL_SRC_FILES := \
 	md5.c \
-	secril-compat.c
+	secril-compat.c \
+	strdup8to16.cpp
 
 LOCAL_SHARED_LIBRARIES := \
 	libhardware_legacy \
 	libbinder \
-	liblog
+	liblog \
+	libutils
 
 LOCAL_CFLAGS := -Wall -Werror
 

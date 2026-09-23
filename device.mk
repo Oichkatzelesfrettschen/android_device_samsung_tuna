@@ -89,7 +89,8 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     android.hardware.gnss@1.0-impl \
     android.hardware.gnss@1.0-service \
-    gps.tuna
+    gps.tuna \
+    libshim_gps_ssl
 
 PRODUCT_COPY_FILES += \
     $(DEVICE_FOLDER)/gps/gps.conf:$(TARGET_COPY_OUT_VENDOR)/etc/gps.conf

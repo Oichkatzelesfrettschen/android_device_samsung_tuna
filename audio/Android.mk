@@ -27,6 +27,7 @@ LOCAL_C_INCLUDES += \
 	$(LOCAL_PATH)/../ril/libsecril-client
 LOCAL_SHARED_LIBRARIES := liblog libcutils libtinyalsa libaudioutils libdl libsecril-client
 LOCAL_MODULE_TAGS := optional
+LOCAL_CFLAGS := -Wall -Werror
 
 ifeq ($(TARGET_TUNA_AUDIO_HDMI),true)
 LOCAL_CFLAGS += -DUSE_HDMI_AUDIO

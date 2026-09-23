@@ -24,6 +24,16 @@ LOCAL_SHARED_LIBRARIES := \
 
 LOCAL_MODULE := gps.$(TARGET_BOOTLOADER_BOARD_NAME)
 LOCAL_MODULE_RELATIVE_PATH := hw
+LOCAL_CFLAGS := -Wall -Werror
 LOCAL_VENDOR_MODULE := true
 
+include $(BUILD_SHARED_LIBRARY)
+
+# Loaded into gps.omap4.so through TARGET_LD_SHIM_LIBS.
+include $(CLEAR_VARS)
+LOCAL_SRC_FILES := ssl-shim.cpp
+LOCAL_SHARED_LIBRARIES := libssl
+LOCAL_MODULE := libshim_gps_ssl
+LOCAL_CFLAGS := -Wall -Werror
+LOCAL_VENDOR_MODULE := true
 include $(BUILD_SHARED_LIBRARY)

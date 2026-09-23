@@ -52,6 +52,9 @@ TARGET_PROCESS_SDK_VERSION_OVERRIDE := \
     /system/vendor/bin/hw/rild=22 \
     /system/vendor/lib/libsec-ril.so=22 \
     /system/vendor/lib/hw/gps.omap4.so=22
+TARGET_LD_SHIM_LIBS := \
+    /system/vendor/lib/hw/gps.omap4.so|libprocessgroup.so \
+    /system/vendor/lib/hw/gps.omap4.so|libshim_gps_ssl.so
 
 # Graphics
 NUM_FRAMEBUFFER_SURFACE_BUFFERS := 3
