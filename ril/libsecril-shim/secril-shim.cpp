@@ -208,7 +208,8 @@ static void onRequestShim(int request, void *data, size_t datalen, RIL_Token t)
 				RLOGI("%s: got request %s: replied with our implementation!", __FUNCTION__, requestToString(request));
 				return;
 			}
-			/* else fall through to E_REQUEST_NOT_SUPPORTED */
+			/* Otherwise answer REQUEST_NOT_SUPPORTED like the requests below. */
+			[[fallthrough]];
 		/* The following requests were introduced post-4.3. */
 		case RIL_REQUEST_SIM_TRANSMIT_APDU_BASIC:
 		case RIL_REQUEST_SIM_OPEN_CHANNEL: /* !!! */
