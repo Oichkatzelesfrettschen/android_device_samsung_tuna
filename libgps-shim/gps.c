@@ -23,16 +23,20 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/cdefs.h>
 
 #include "gps.h"
-#define REAL_GPS_PATH "/vendor/lib/hw/gps.omap4.so"
+#define REAL_GPS_PATH "/vendor/lib/lib_gsd4t_jellybean.so"
 
 const GpsInterface* (*vendor_get_gps_interface)(struct gps_device_t* dev);
 const void* (*vendor_get_extension)(const char* name);
-int (*vendor_init)(GpsCallbacks* gpsCallbacks);
+/* The SiRF library predates the N additions to GpsCallbacks and
+ * AGpsRefLocationCellID; its entry points take the legacy layouts from
+ * gps.h, so the shim holds them under their real types. */
+int (*vendor_init)(GpsCallbacks_Legacy* gpsCallbacks);
 void (*vendor_set_ref_location)(const AGpsRefLocationNoLTE *agps_reflocation, size_t sz_struct);
 
-void shim_set_ref_location(AGpsRefLocation *agps_reflocation, size_t sz_struct) {
+static void shim_set_ref_location(const AGpsRefLocation *agps_reflocation, size_t sz_struct) {
 	AGpsRefLocationNoLTE vendor_ref;
 	if (sizeof(AGpsRefLocationNoLTE) > sz_struct) {
 		ALOGE("%s: AGpsRefLocation is too small, bailing out!", __func__);
@@ -58,15 +62,6 @@ void shim_set_ref_location(AGpsRefLocation *agps_reflocation, size_t sz_struct) 
 	ALOGD("%s: cellID.u.cid  : %d => %d", __func__, agps_reflocation->u.cellID.cid, vendor_ref.u.cellID.cid);
 	ALOGD("%s: cellID.u.tac  : %d => NOT SUPPORTED", __func__, agps_reflocation->u.cellID.tac);
 	ALOGD("%s: cellID.u.pcid : %d => NOT SUPPORTED", __func__, agps_reflocation->u.cellID.pcid);
-	ALOGD("%s: u.mac         : %d => %d", __func__, agps_reflocation->u.mac, vendor_ref.u.mac);
-
-	agps_reflocation->type = vendor_ref.type;
-	agps_reflocation->u.cellID.type = vendor_ref.u.cellID.type;
-	agps_reflocation->u.cellID.mcc = vendor_ref.u.cellID.mcc;
-	agps_reflocation->u.cellID.mnc = vendor_ref.u.cellID.mnc;
-	agps_reflocation->u.cellID.lac = vendor_ref.u.cellID.lac;
-	agps_reflocation->u.cellID.cid = vendor_ref.u.cellID.cid;
-	agps_reflocation->u.mac = vendor_ref.u.mac;
 }
 
 const void* shim_get_extension(const char* name) {
@@ -76,7 +71,8 @@ const void* shim_get_extension(const char* name) {
 		AGpsRilInterface *ril = (AGpsRilInterface*)vendor_get_extension(name);
 		// now we shim the ref_location callback
 		ALOGD("%s: shimming RIL ref_location callback", __func__);
-		vendor_set_ref_location = ril->set_ref_location;
+		vendor_set_ref_location =
+			(void (*)(const AGpsRefLocationNoLTE *, size_t))ril->set_ref_location;
 		ril->set_ref_location = shim_set_ref_location;
 		return ril;
 	} else {
@@ -112,13 +108,13 @@ const GpsInterface* shim_get_gps_interface(struct gps_device_t* dev) {
 	halInterface->get_extension = &shim_get_extension;
 
 	ALOGD("%s: shimming vendor init", __func__);
-	vendor_init = halInterface->init;
+	vendor_init = (int (*)(GpsCallbacks_Legacy *))halInterface->init;
 	halInterface->init = &shim_init;
 
 	return halInterface;
 }
 
-static int open_gps(const struct hw_module_t* module, char const* name,
+static int open_gps(const struct hw_module_t* module __unused, char const* name,
 		struct hw_device_t** device) {
 	void *realGpsLib;
 	struct hw_module_t *realHalSym;

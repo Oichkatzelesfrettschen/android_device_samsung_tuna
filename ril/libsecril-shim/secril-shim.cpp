@@ -34,12 +34,12 @@ static int simRuimStatus = -1;
 
 /* helper functions */
 #if SHIM_UPGRADE_VERSION >= 7
-static int decodeVoiceRadioTechnology(RIL_RadioState radioState)
+static int decodeVoiceRadioTechnology(int radioState)
 {
 	switch (radioState) {
-		case RADIO_STATE_SIM_NOT_READY:
-		case RADIO_STATE_SIM_LOCKED_OR_ABSENT:
-		case RADIO_STATE_SIM_READY:
+		case LEGACY_RADIO_STATE_SIM_NOT_READY:
+		case LEGACY_RADIO_STATE_SIM_LOCKED_OR_ABSENT:
+		case LEGACY_RADIO_STATE_SIM_READY:
 			/* HAX: See GsmCdmaPhone.java --> phoneObjectUpdater(int newVoiceRadioTech)
 			 * For v6 RILs with LTE_ON_CDMA mode, they ignore reported voice radio tech
 			 * and assume 1xRTT. For toro(plus), we must do the same when upgrading RIL version. */
@@ -48,11 +48,11 @@ static int decodeVoiceRadioTechnology(RIL_RadioState radioState)
 			}
 			return RADIO_TECH_UMTS;
 
-		case RADIO_STATE_RUIM_NOT_READY:
-		case RADIO_STATE_RUIM_READY:
-		case RADIO_STATE_RUIM_LOCKED_OR_ABSENT:
-		case RADIO_STATE_NV_NOT_READY:
-		case RADIO_STATE_NV_READY:
+		case LEGACY_RADIO_STATE_RUIM_NOT_READY:
+		case LEGACY_RADIO_STATE_RUIM_READY:
+		case LEGACY_RADIO_STATE_RUIM_LOCKED_OR_ABSENT:
+		case LEGACY_RADIO_STATE_NV_NOT_READY:
+		case LEGACY_RADIO_STATE_NV_READY:
 			return RADIO_TECH_1xRTT;
 
 		default:
@@ -61,19 +61,19 @@ static int decodeVoiceRadioTechnology(RIL_RadioState radioState)
 	}
 }
 
-static int decodeCdmaSubscriptionSource(RIL_RadioState radioState)
+static int decodeCdmaSubscriptionSource(int radioState)
 {
 	switch (radioState) {
-		case RADIO_STATE_SIM_NOT_READY:
-		case RADIO_STATE_SIM_LOCKED_OR_ABSENT:
-		case RADIO_STATE_SIM_READY:
-		case RADIO_STATE_RUIM_NOT_READY:
-		case RADIO_STATE_RUIM_READY:
-		case RADIO_STATE_RUIM_LOCKED_OR_ABSENT:
+		case LEGACY_RADIO_STATE_SIM_NOT_READY:
+		case LEGACY_RADIO_STATE_SIM_LOCKED_OR_ABSENT:
+		case LEGACY_RADIO_STATE_SIM_READY:
+		case LEGACY_RADIO_STATE_RUIM_NOT_READY:
+		case LEGACY_RADIO_STATE_RUIM_READY:
+		case LEGACY_RADIO_STATE_RUIM_LOCKED_OR_ABSENT:
 			return CDMA_SUBSCRIPTION_SOURCE_RUIM_SIM;
 
-		case RADIO_STATE_NV_NOT_READY:
-		case RADIO_STATE_NV_READY:
+		case LEGACY_RADIO_STATE_NV_NOT_READY:
+		case LEGACY_RADIO_STATE_NV_READY:
 			return CDMA_SUBSCRIPTION_SOURCE_NV;
 
 		default:
@@ -82,19 +82,19 @@ static int decodeCdmaSubscriptionSource(RIL_RadioState radioState)
     }
 }
 
-static int decodeSimStatus(RIL_RadioState radioState)
+static int decodeSimStatus(int radioState)
 {
 	switch (radioState) {
-		case RADIO_STATE_SIM_NOT_READY:
-		case RADIO_STATE_RUIM_NOT_READY:
-		case RADIO_STATE_NV_NOT_READY:
-		case RADIO_STATE_NV_READY:
+		case LEGACY_RADIO_STATE_SIM_NOT_READY:
+		case LEGACY_RADIO_STATE_RUIM_NOT_READY:
+		case LEGACY_RADIO_STATE_NV_NOT_READY:
+		case LEGACY_RADIO_STATE_NV_READY:
 			return -1;
 
-		case RADIO_STATE_SIM_LOCKED_OR_ABSENT:
-		case RADIO_STATE_SIM_READY:
-		case RADIO_STATE_RUIM_READY:
-		case RADIO_STATE_RUIM_LOCKED_OR_ABSENT:
+		case LEGACY_RADIO_STATE_SIM_LOCKED_OR_ABSENT:
+		case LEGACY_RADIO_STATE_SIM_READY:
+		case LEGACY_RADIO_STATE_RUIM_READY:
+		case LEGACY_RADIO_STATE_RUIM_LOCKED_OR_ABSENT:
 			return radioState;
 
 		default:
@@ -128,6 +128,7 @@ static void onRequestCdmaGetSubscriptionSource(RIL_Token t)
 
 	if ((RADIO_STATE_UNAVAILABLE == cdmaSubSourceState) || (RADIO_STATE_OFF == cdmaSubSourceState)) {
 		rilEnv->OnRequestComplete(t, RIL_E_RADIO_NOT_AVAILABLE, NULL, 0);
+		return;
 	}
 
 	cdmaSubscriptionSource = decodeCdmaSubscriptionSource(cdmaSubSourceState);
@@ -147,6 +148,7 @@ static void onRequestVoiceRadioTech(RIL_Token t)
 
 	if ((RADIO_STATE_UNAVAILABLE == voiceRadioTechState) || (RADIO_STATE_OFF == voiceRadioTechState)) {
 		rilEnv->OnRequestComplete(t, RIL_E_RADIO_NOT_AVAILABLE, NULL, 0);
+		return;
 	}
 
 	voiceRadioTech = decodeVoiceRadioTechnology(voiceRadioTechState);

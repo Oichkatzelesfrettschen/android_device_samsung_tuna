@@ -29,7 +29,7 @@ LOCAL_VENDOR_MODULE := true
 
 include $(BUILD_SHARED_LIBRARY)
 
-# Loaded into gps.omap4.so through TARGET_LD_SHIM_LIBS.
+# Loaded into lib_gsd4t_jellybean.so through TARGET_LD_SHIM_LIBS.
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := ssl-shim.cpp
 LOCAL_SHARED_LIBRARIES := libssl

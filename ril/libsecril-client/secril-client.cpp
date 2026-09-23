@@ -926,7 +926,6 @@ static int SendOemRequestHookRaw(HRilClient client, int req_id, char *data, size
     uint32_t header = 0;
     android::Parcel p;
     RilClientPrv *client_prv;
-    int maxfd = -1;
 
     client_prv = (RilClientPrv *)(client->prv);
 

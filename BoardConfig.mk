@@ -52,10 +52,10 @@ TARGET_NEEDS_PLATFORM_TEXT_RELOCATIONS := true
 TARGET_PROCESS_SDK_VERSION_OVERRIDE := \
     /system/vendor/bin/hw/rild=22 \
     /system/vendor/lib/libsec-ril.so=22 \
-    /system/vendor/lib/hw/gps.omap4.so=22
+    /system/vendor/lib/lib_gsd4t_jellybean.so=22
 TARGET_LD_SHIM_LIBS := \
-    /system/vendor/lib/hw/gps.omap4.so|libprocessgroup.so \
-    /system/vendor/lib/hw/gps.omap4.so|libshim_gps_ssl.so
+    /system/vendor/lib/lib_gsd4t_jellybean.so|libprocessgroup.so \
+    /system/vendor/lib/lib_gsd4t_jellybean.so|libshim_gps_ssl.so
 
 # Graphics
 NUM_FRAMEBUFFER_SURFACE_BUFFERS := 3
@@ -65,7 +65,6 @@ TARGET_DISABLE_POSTRENDER_CLEANUP := true
 # Camera
 BOARD_CANT_REALLOCATE_OMX_BUFFERS := true
 TARGET_CAMERASERVICE_CLOSES_NATIVE_HANDLES := true
-TARGET_HAS_LEGACY_CAMERA_HAL1 := true
 TI_CAMERAHAL_USES_LEGACY_DOMX_DCC := true
 TI_CAMERAHAL_INTERFACE := OMX
 DOMX_TUNA := true

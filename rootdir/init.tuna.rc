@@ -116,9 +116,7 @@ service smc_pa_wvdrm /vendor/bin/smc_pa_ctrl -c /vendor/etc/smc_normal_world_and
     oneshot
     disabled
 
-# Formats the 4 MiB dgs partition for the TrustZone secure storage on
-# first boot, then reboots, because tf_daemon hangs when started on a
-# freshly created filesystem.
+# Checks, and on first boot formats, the dgs partition behind /tee.
 service tee_fs_setup /vendor/bin/tee-fs-setup.sh
     class core
     user root
@@ -126,9 +124,17 @@ service tee_fs_setup /vendor/bin/tee-fs-setup.sh
     disabled
     oneshot
 
-on property:init.tee_fs.ready=true
+on property:vendor.tee_fs.ready=true
     start smc_pa_wvdrm
     start tf_daemon
+
+# A freshly formatted dgs gets its smc directory, then the device reboots:
+# tf_daemon hangs when started on a filesystem created in the same boot.
+on property:vendor.tee_fs.formatted=true
+    mount ext4 /dev/block/platform/omap/omap_hsmmc.0/by-name/dgs /tee noatime nosuid nodev
+    mkdir /tee/smc 0770 drmrpc drmrpc
+    restorecon_recursive /tee
+    setprop sys.powerctl reboot,tee-fs-setup
 
 # Allow writing to the kernel trace log. Enabling tracing still requires root.
 on property:ro.debuggable=1

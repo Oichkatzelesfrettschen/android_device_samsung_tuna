@@ -20,6 +20,21 @@
 
 #define RIL_LIB_PATH "/vendor/lib/libsec-ril.so"
 
+/* libsec-ril speaks RIL v6, whose RIL_RadioState folded the SIM, RUIM and
+ * NV readiness into the radio state (values from the AOSP 4.3 ril.h).
+ * Android 11's RIL_RadioState keeps only OFF (0), UNAVAILABLE (1) and
+ * ON (10); the shim decodes the states in between itself. */
+enum LegacyRadioState {
+	LEGACY_RADIO_STATE_SIM_NOT_READY = 2,
+	LEGACY_RADIO_STATE_SIM_LOCKED_OR_ABSENT = 3,
+	LEGACY_RADIO_STATE_SIM_READY = 4,
+	LEGACY_RADIO_STATE_RUIM_NOT_READY = 5,
+	LEGACY_RADIO_STATE_RUIM_READY = 6,
+	LEGACY_RADIO_STATE_RUIM_LOCKED_OR_ABSENT = 7,
+	LEGACY_RADIO_STATE_NV_NOT_READY = 8,
+	LEGACY_RADIO_STATE_NV_READY = 9,
+};
+
 enum variant_type {
 	VARIANT_INIT,
 	VARIANT_MAGURO,

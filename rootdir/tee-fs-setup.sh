@@ -1,8 +1,10 @@
 #!/system/bin/sh
-# Formats the dgs partition for the TrustZone secure storage the first time
-# it is found empty, then reboots: tf_daemon hangs when started on a
-# filesystem created in the same boot. An initialized /tee sets
-# init.tee_fs.ready, which starts smc_pa_wvdrm and tf_daemon.
+# Prepares the dgs partition for the TrustZone secure storage. A mounted
+# /tee with its smc directory sets vendor.tee_fs.ready, which starts
+# smc_pa_wvdrm and tf_daemon. A partition still blank from the factory is
+# formatted here and reported through vendor.tee_fs.formatted; init then
+# mounts it, creates /tee/smc and reboots, because tf_daemon hangs when
+# started on a filesystem created in the same boot.
 
 DEVICE="/dev/block/platform/omap/omap_hsmmc.0/by-name/dgs"
 
@@ -13,18 +15,9 @@ log_to_kernel() {
     echo "tee-fs-setup: $*" > /dev/kmsg
 }
 
-create_tee_fs() {
-    /system/bin/mke2fs -t ext4 -b 4096 "${DEVICE}" || return 1
-    mount -t ext4 "${DEVICE}" /tee || return 1
-    mkdir /tee/smc || return 1
-    chmod 0770 /tee/smc || return 1
-    chown drmrpc:drmrpc /tee/smc || return 1
-    restorecon -R /tee/smc || return 1
-}
-
 if [ -e /tee/smc ]; then
-    log_to_kernel "/tee is already initialized for SMC"
-    setprop init.tee_fs.ready true
+    log_to_kernel "/tee is initialized for SMC"
+    setprop vendor.tee_fs.ready true
     exit 0
 fi
 
@@ -34,10 +27,9 @@ if [ "${actual_hash}" != "${EXPECTED_HASH}  ${DEVICE}" ]; then
     exit 0
 fi
 
-if create_tee_fs > /dev/kmsg 2>&1; then
-    log_to_kernel "initialized /tee for SMC, rebooting"
-    mount -t ext4 -o remount,ro /tee
-    reboot
+if /system/bin/mke2fs -t ext4 -b 4096 "${DEVICE}" > /dev/kmsg 2>&1; then
+    log_to_kernel "formatted dgs for SMC"
+    setprop vendor.tee_fs.formatted true
 else
-    log_to_kernel "initialization of /tee for SMC failed; SMC stays off"
+    log_to_kernel "formatting dgs failed; SMC stays off"
 fi

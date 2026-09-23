@@ -845,7 +845,6 @@ static int check_input_parameters(uint32_t sample_rate, audio_format_t format, i
 static size_t get_input_buffer_size(uint32_t sample_rate, audio_format_t format, int channel_count)
 {
     size_t size;
-    size_t device_rate;
 
     if (check_input_parameters(sample_rate, format, channel_count) != 0)
         return 0;
@@ -979,8 +978,6 @@ static int out_set_sample_rate(struct audio_stream *stream __unused, uint32_t ra
 
 static size_t out_get_buffer_size_low_latency(const struct audio_stream *stream)
 {
-    struct tuna_stream_out *out = (struct tuna_stream_out *)stream;
-
     /* return the closest majoring multiple of 16 frames, as audioflinger
      * expects audio buffers to be a multiple of 16 frames. */
     size_t size = SHORT_PERIOD_SIZE;
@@ -990,8 +987,6 @@ static size_t out_get_buffer_size_low_latency(const struct audio_stream *stream)
 
 static size_t out_get_buffer_size_deep_buffer(const struct audio_stream *stream)
 {
-    struct tuna_stream_out *out = (struct tuna_stream_out *)stream;
-
     /* return the closest majoring multiple of 16 frames, as audioflinger
      * expects audio buffers to be a multiple of 16 frames. */
     size_t size = DEEP_BUFFER_SHORT_PERIOD_SIZE;
@@ -1100,7 +1095,6 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
     struct tuna_audio_device *adev = out->dev;
     struct tuna_stream_in *in;
     struct str_parms *parms;
-    char *str;
     char value[32];
     int ret, val = 0;
     bool force_input_standby = false;
@@ -1328,7 +1322,6 @@ static ssize_t out_write_deep_buffer(struct audio_stream_out *stream, const void
     int ret;
     struct tuna_stream_out *out = (struct tuna_stream_out *)stream;
     struct tuna_audio_device *adev = out->dev;
-    size_t frames = bytes / audio_stream_out_frame_size(&out->stream);
     bool use_long_periods;
     int kernel_frames;
 
@@ -1608,7 +1601,6 @@ static int in_set_parameters(struct audio_stream *stream, const char *kvpairs)
     struct tuna_stream_in *in = (struct tuna_stream_in *)stream;
     struct tuna_audio_device *adev = in->dev;
     struct str_parms *parms;
-    char *str;
     char value[32];
     int ret, val = 0;
     bool do_standby = false;
@@ -2651,7 +2643,6 @@ static int adev_set_parameters(struct audio_hw_device *dev, const char *kvpairs)
 {
     struct tuna_audio_device *adev = (struct tuna_audio_device *)dev;
     struct str_parms *parms;
-    char *str;
     char value[32];
     int ret;
 
@@ -2776,7 +2767,6 @@ static int adev_get_mic_mute(const struct audio_hw_device *dev, bool *state)
 static size_t adev_get_input_buffer_size(const struct audio_hw_device *dev __unused,
                                          const struct audio_config *config)
 {
-    size_t size;
     int channel_count = popcount(config->channel_mask);
     if (check_input_parameters(config->sample_rate, config->format, channel_count) != 0)
         return 0;
@@ -2912,7 +2902,6 @@ static int adev_open(const hw_module_t* module, const char* name,
                      hw_device_t** device)
 {
     struct tuna_audio_device *adev;
-    int ret;
 
     if (strcmp(name, AUDIO_HARDWARE_INTERFACE) != 0)
         return -EINVAL;
