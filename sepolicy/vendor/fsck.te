@@ -1,0 +1,2 @@
+# fs_mgr checks the TrustZone storage filesystem on /tee before mounting it.
+allow fsck tee_block_device:blk_file rw_file_perms;

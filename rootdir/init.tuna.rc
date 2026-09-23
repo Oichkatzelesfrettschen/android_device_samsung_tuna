@@ -20,6 +20,10 @@ on fs
     write /proc/sys/vm/swappiness 100
 
     restorecon /dev/block/platform/omap/omap_hsmmc.0/by-name/radio
+
+    # /factory holds the IMEI, NV data and calibration. It mounts read-only
+    # and is writable only for the relabel.
+    mount ext4 /dev/block/platform/omap/omap_hsmmc.0/by-name/efs /factory rw remount
     restorecon_recursive /factory
     mount ext4 /dev/block/platform/omap/omap_hsmmc.0/by-name/efs /factory ro remount
 
