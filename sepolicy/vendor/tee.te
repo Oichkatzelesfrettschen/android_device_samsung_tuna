@@ -1,0 +1,4 @@
+# tf_daemon keeps the TrustZone secure storage under /tee.
+allow tee tee_file:dir create_dir_perms;
+allow tee tee_file:file create_file_perms;
+allow tee vendor_file:file r_file_perms;

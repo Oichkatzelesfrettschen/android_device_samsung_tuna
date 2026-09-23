@@ -21,7 +21,8 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := keystore.tuna
 
-LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
+LOCAL_MODULE_RELATIVE_PATH := hw
+LOCAL_VENDOR_MODULE := true
 
 LOCAL_SRC_FILES := \
 	keymaster_tuna.cpp

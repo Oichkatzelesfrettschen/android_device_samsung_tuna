@@ -1,3 +1,0 @@
-# Device types
-type efs_block_device, dev_type;
-type tee_block_device, dev_type;

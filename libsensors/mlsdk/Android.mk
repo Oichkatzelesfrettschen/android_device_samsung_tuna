@@ -20,6 +20,7 @@ LOCAL_SRC_FILES := \
 	mlsdk/platform/linux/mlsl_linux_mpu.c
 
 LOCAL_SHARED_LIBRARIES := liblog libm libutils libcutils
+LOCAL_VENDOR_MODULE := true
 include $(BUILD_SHARED_LIBRARY)
 
 
@@ -67,4 +68,5 @@ LOCAL_SRC_FILES := \
 	mlsdk/mlutils/checksum.c \
 
 LOCAL_SHARED_LIBRARIES := libm libutils libcutils liblog libmlplatform
+LOCAL_VENDOR_MODULE := true
 include $(BUILD_SHARED_LIBRARY)

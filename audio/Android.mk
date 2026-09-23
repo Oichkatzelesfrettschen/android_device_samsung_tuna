@@ -17,7 +17,8 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE := audio.primary.tuna
-LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
+LOCAL_MODULE_RELATIVE_PATH := hw
+LOCAL_VENDOR_MODULE := true
 LOCAL_SRC_FILES := audio_hw.c ril_interface.c
 LOCAL_C_INCLUDES += \
 	external/tinyalsa/include \

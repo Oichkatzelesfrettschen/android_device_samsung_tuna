@@ -1,0 +1,11 @@
+# Formats and labels the dgs partition backing /tee on first boot.
+type tee_fs_setup, domain;
+type tee_fs_setup_exec, exec_type, vendor_file_type, file_type;
+init_daemon_domain(tee_fs_setup)
+
+allow tee_fs_setup vendor_shell_exec:file rx_file_perms;
+allow tee_fs_setup vendor_toolbox_exec:file rx_file_perms;
+allow tee_fs_setup block_device:dir search;
+allow tee_fs_setup tee_block_device:blk_file rw_file_perms;
+allow tee_fs_setup kmsg_device:chr_file w_file_perms;
+set_prop(tee_fs_setup, tee_fs_prop)
