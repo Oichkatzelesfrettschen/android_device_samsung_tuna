@@ -1,0 +1,2 @@
+# The InvenSense MPU3050 library drives /dev/mpu and its interrupt nodes.
+allow hal_sensors_default sensors_device:chr_file rw_file_perms;

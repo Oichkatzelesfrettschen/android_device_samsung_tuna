@@ -1,3 +1,9 @@
+# dumpdcc copies the camera calibration from the MTD partition into
+# /data/misc/cameraserver for the camera HAL.
 type dumpdcc, domain;
 type dumpdcc_exec, exec_type, vendor_file_type, file_type;
 init_daemon_domain(dumpdcc)
+
+allow dumpdcc camera_device:chr_file rw_file_perms;
+allow dumpdcc camera_data_file:dir rw_dir_perms;
+allow dumpdcc camera_data_file:file create_file_perms;

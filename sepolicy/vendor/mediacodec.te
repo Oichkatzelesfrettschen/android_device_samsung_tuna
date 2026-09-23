@@ -1,0 +1,4 @@
+# DOMX reaches the Ducati codecs over rpmsg and shares buffers through
+# ION and the SGX.
+allow mediacodec rpmsg_device:chr_file rw_file_perms;
+allow mediacodec gpu_device:chr_file rw_file_perms;

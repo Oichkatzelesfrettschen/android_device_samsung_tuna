@@ -1,0 +1,13 @@
+# libsec-ril drives the XMM6260 through the umts_* character devices,
+# loads the modem image from the radio partition and keeps its NV data in
+# /factory.
+allow rild modem_block_device:blk_file rw_file_perms;
+allow rild block_device:dir search;
+allow rild efs_file:dir r_dir_perms;
+allow rild radio_efs_file:dir create_dir_perms;
+allow rild radio_efs_file:file create_file_perms;
+allow rild radio_data_file:dir create_dir_perms;
+allow rild radio_data_file:file create_file_perms;
+allow rild radio_data_file:lnk_file r_file_perms;
+allow rild sysfs_tuna_otg:file rw_file_perms;
+allow rild proc_net:file w_file_perms;

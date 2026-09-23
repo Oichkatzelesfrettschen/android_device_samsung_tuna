@@ -1,0 +1,3 @@
+# audio.primary.tuna routes call audio through the RIL's abstract
+# "Multiclient" socket via libsecril-client.
+allow hal_audio_default rild:unix_stream_socket connectto;
