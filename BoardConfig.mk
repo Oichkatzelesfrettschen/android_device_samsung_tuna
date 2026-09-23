@@ -31,7 +31,9 @@ TARGET_USES_64_BIT_BINDER := true
 # The kernel carries memfd_create (syscall 385) from the 3.17 series.
 TARGET_HAS_MEMFD_BACKPORT := true
 
-# Kernel: the 3.0 tree builds with GCC 4.9 only.
+# Kernel: the 3.0 tree builds with GCC 4.9 only. The default toolchain is
+# the absolute arm-linux-androidkernel- wrapper set in
+# prebuilts/gcc/.../arm-linux-androideabi-4.9, which links to that GCC.
 BOARD_KERNEL_BASE := 0x80000000
 BOARD_KERNEL_PAGESIZE := 2048
 BOARD_KERNEL_IMAGE_NAME := zImage
@@ -40,7 +42,6 @@ BOARD_KERNEL_CMDLINE += androidboot.selinux=permissive
 TARGET_KERNEL_CONFIG := tuna_defconfig
 TARGET_KERNEL_SOURCE := kernel/samsung/tuna
 TARGET_KERNEL_CLANG_COMPILE := false
-TARGET_KERNEL_CROSS_COMPILE_PREFIX := arm-linux-androideabi-
 
 # Treble: no vendor partition and no VNDK. /vendor is /system/vendor.
 DEVICE_MANIFEST_FILE := $(DEVICE_FOLDER)/manifest.xml
