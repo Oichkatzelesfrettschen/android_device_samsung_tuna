@@ -4,6 +4,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE_TAGS := optional
 
 LOCAL_SRC_FILES := \
+	atomic.c \
 	md5.c \
 	secril-compat.c \
 	strdup8to16.cpp
@@ -11,6 +12,7 @@ LOCAL_SRC_FILES := \
 LOCAL_SHARED_LIBRARIES := \
 	libhardware_legacy \
 	libbinder \
+	libcutils \
 	liblog \
 	libutils
 

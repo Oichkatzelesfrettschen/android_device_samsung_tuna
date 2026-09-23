@@ -12,7 +12,8 @@ LOCAL_SHARED_LIBRARIES := \
     libutils \
     libbinder \
     libcutils \
-    libhardware_legacy
+    libhardware_legacy \
+    liblog
 
 LOCAL_MODULE:= libsecril-client
 LOCAL_CFLAGS := -Wall -Werror

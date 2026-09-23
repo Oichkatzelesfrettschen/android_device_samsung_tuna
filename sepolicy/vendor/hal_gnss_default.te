@@ -1,3 +1,4 @@
 # The SiRF GSD4t is on /dev/ttyO0, with power and reset GPIOs in sysfs.
 allow hal_gnss_default gps_device:chr_file rw_file_perms;
-allow hal_gnss_default gps_control:file rw_file_perms;
+allow hal_gnss_default sysfs_gps:file rw_file_perms;
+allow hal_gnss_default proc_gps_control:file rw_file_perms;

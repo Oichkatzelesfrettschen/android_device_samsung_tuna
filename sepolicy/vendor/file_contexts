@@ -29,8 +29,6 @@
 /dev/mpuirq                     u:object_r:sensors_device:s0
 /dev/i2c-2                      u:object_r:camera_device:s0
 /dev/mtd/mtd0                   u:object_r:camera_device:s0
-/dev/rpmsg-omx[01]              u:object_r:rpmsg_device:s0
-/dev/rproc_user                 u:object_r:rpmsg_device:s0
 /dev/tf_driver                  u:object_r:tee_device:s0
 /dev/tf_ctrl                    u:object_r:tee_device:s0
 
