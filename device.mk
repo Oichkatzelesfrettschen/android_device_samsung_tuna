@@ -39,6 +39,7 @@ PRODUCT_COPY_FILES += \
     $(DEVICE_FOLDER)/rootdir/fstab.tuna:$(TARGET_COPY_OUT_VENDOR)/etc/fstab.tuna \
     $(DEVICE_FOLDER)/rootdir/init.tuna.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/hw/init.tuna.rc \
     $(DEVICE_FOLDER)/rootdir/init.tuna.usb.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/hw/init.tuna.usb.rc \
+    $(DEVICE_FOLDER)/rootdir/android.hardware.sensors@1.0-service.tuna.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/android.hardware.sensors@1.0-service.tuna.rc \
     $(DEVICE_FOLDER)/rootdir/ueventd.tuna.rc:$(TARGET_COPY_OUT_VENDOR)/ueventd.rc \
     $(DEVICE_FOLDER)/rootdir/tee-fs-setup.sh:$(TARGET_COPY_OUT_VENDOR)/bin/tee-fs-setup.sh
 

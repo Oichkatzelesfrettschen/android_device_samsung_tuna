@@ -1,0 +1,10 @@
+# sensors.tuna reads the light, proximity and barometer input devices, which
+# ueventd creates 0660 root:input; the stock service rc lacks group input.
+service vendor.sensors-hal-1-0 /vendor/bin/hw/android.hardware.sensors@1.0-service
+    override
+    interface android.hardware.sensors@1.0::ISensors default
+    class hal
+    user system
+    group system wakelock uhid context_hub input
+    capabilities BLOCK_SUSPEND
+    rlimit rtprio 10 10
