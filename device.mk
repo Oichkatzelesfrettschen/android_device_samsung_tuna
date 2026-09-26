@@ -172,6 +172,14 @@ PRODUCT_PACKAGES += \
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.adb.nonblocking_ffs=false
 
+# post_process_props.py leaves persist.sys.usb.config at "none" when
+# ro.adb.secure=1, which keeps USB off until USB debugging is enabled on
+# screen; debuggable builds start with adb.
+ifneq ($(TARGET_BUILD_VARIANT),user)
+PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
+    persist.sys.usb.config=adb
+endif
+
 # Vibrator: the timed_output vibrator through vibrator.default
 PRODUCT_PACKAGES += \
     android.hardware.vibrator@1.0-impl \
