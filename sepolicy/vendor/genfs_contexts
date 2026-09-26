@@ -1,3 +1,11 @@
 genfscon proc /mcspi1_cs3_ctrl                                  u:object_r:proc_gps_control:s0
 genfscon sysfs /devices/virtual/sec/gps                         u:object_r:sysfs_gps:s0
+# board-tuna.c's tuna_gsd4t_gps_init() (GPIO_GPS_nRST=136, GPIO_GPS_PWR_EN=137)
+# links these gpiolib nodes into /devices/virtual/sec/gps/ by name, but the
+# real sysfs nodes gpiolib creates and that gpio_export_link() points at live
+# under /devices/virtual/gpio/, a disjoint genfscon subtree from the "sec/gps"
+# class device above, so the rule above never reaches gpio136/gpio137's own
+# attribute files without this pair.
+genfscon sysfs /devices/virtual/gpio/gpio136                    u:object_r:sysfs_gps:s0
+genfscon sysfs /devices/virtual/gpio/gpio137                    u:object_r:sysfs_gps:s0
 genfscon sysfs /devices/tuna_otg                                u:object_r:sysfs_tuna_otg:s0
