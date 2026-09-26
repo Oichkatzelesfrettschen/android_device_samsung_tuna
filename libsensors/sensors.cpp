@@ -27,6 +27,7 @@
 #include <poll.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <linux/input.h>
 
@@ -109,7 +110,7 @@ static struct sensor_t sSensorList[LOCAL_SENSORS + MPLSensor::numSensors] =
      0, SENSOR_FLAG_CONTINUOUS_MODE, {}},
     {"MPL Rotation Vector", "Invensense", 1, SENSORS_ROTATION_VECTOR_HANDLE,
      SENSOR_TYPE_ROTATION_VECTOR, NINEAXIS_ROTATION_VECTOR_RANGE, NINEAXIS_ROTATION_VECTOR_RESOLUTION,
-     NINEAXIS_ROTATION_VECTOR_POWER, 10000, 0, 0, SENSOR_STRING_TYPE_ORIENTATION, "",
+     NINEAXIS_ROTATION_VECTOR_POWER, 10000, 0, 0, SENSOR_STRING_TYPE_ROTATION_VECTOR, "",
      0, SENSOR_FLAG_CONTINUOUS_MODE, {}},
     {"MPL Linear Acceleration", "Invensense", 1, SENSORS_LINEAR_ACCEL_HANDLE,
      SENSOR_TYPE_LINEAR_ACCELERATION, NINEAXIS_LINEAR_ACCEL_RANGE, NINEAXIS_LINEAR_ACCEL_RESOLUTION,
@@ -161,13 +162,14 @@ struct sensors_module_t HAL_MODULE_INFO_SYM = {
 };
 
 struct sensors_poll_context_t {
-    struct sensors_poll_device_t device; // must be first
+    struct sensors_poll_device_1 device; // must be first
 
         sensors_poll_context_t();
         ~sensors_poll_context_t();
     int activate(int handle, int enabled);
     int setDelay(int handle, int64_t ns);
     int pollEvents(sensors_event_t* data, int count);
+    int flush(int handle);
 
 private:
     enum {
@@ -188,6 +190,13 @@ private:
     struct pollfd mPollFds[numFds];
     int mWritePipeFd;
     SensorBase* mSensors[numSensorDrivers];
+
+    /* Handles with a flush request whose META_DATA_FLUSH_COMPLETE event
+     * has not been returned by poll() yet. */
+    static const int kMaxPendingFlushes = 64;
+    pthread_mutex_t mFlushLock;
+    int mPendingFlushes[kMaxPendingFlushes];
+    int mNumPendingFlushes;
 
     int handleToDriver(int handle) const {
         switch (handle) {
@@ -274,6 +283,9 @@ sensors_poll_context_t::sensors_poll_context_t()
     mPollFds[mpl_power].fd = ((MPLSensor*)mSensors[mpl])->getPowerFd();
     mPollFds[mpl_power].events = POLLIN;
     mPollFds[mpl_power].revents = 0;
+
+    pthread_mutex_init(&mFlushLock, NULL);
+    mNumPendingFlushes = 0;
 }
 
 sensors_poll_context_t::~sensors_poll_context_t()
@@ -284,6 +296,7 @@ sensors_poll_context_t::~sensors_poll_context_t()
     }
     close(mPollFds[wake].fd);
     close(mWritePipeFd);
+    pthread_mutex_destroy(&mFlushLock);
 }
 
 int sensors_poll_context_t::activate(int handle, int enabled)
@@ -308,12 +321,50 @@ int sensors_poll_context_t::setDelay(int handle, int64_t ns)
     return mSensors[index]->setDelay(handle, ns);
 }
 
+/* No sensor here batches in hardware, so a flush completes at once: the
+ * META_DATA_FLUSH_COMPLETE event is queued and poll() is woken to return it.
+ * One-shot sensors have no flush (sensors.h, device API 1.1 and later). */
+int sensors_poll_context_t::flush(int handle)
+{
+    FUNC_LOG;
+    if (handleToDriver(handle) < 0)
+        return -EINVAL;
+
+    pthread_mutex_lock(&mFlushLock);
+    if (mNumPendingFlushes == kMaxPendingFlushes) {
+        pthread_mutex_unlock(&mFlushLock);
+        return -ENOMEM;
+    }
+    mPendingFlushes[mNumPendingFlushes++] = handle;
+    pthread_mutex_unlock(&mFlushLock);
+
+    const char wakeMessage(WAKE_MESSAGE);
+    int result = write(mWritePipeFd, &wakeMessage, 1);
+    ALOGE_IF(result < 0, "error sending wake message (%s)", strerror(errno));
+    return 0;
+}
+
 int sensors_poll_context_t::pollEvents(sensors_event_t* data, int count)
 {
     //FUNC_LOG;
     int nbEvents = 0;
     int n = 0;
     int polltime = -1;
+
+    pthread_mutex_lock(&mFlushLock);
+    while (count && mNumPendingFlushes) {
+        memset(data, 0, sizeof(*data));
+        data->version = META_DATA_VERSION;
+        data->type = SENSOR_TYPE_META_DATA;
+        data->meta_data.what = META_DATA_FLUSH_COMPLETE;
+        data->meta_data.sensor = mPendingFlushes[0];
+        memmove(mPendingFlushes, mPendingFlushes + 1,
+                --mNumPendingFlushes * sizeof(mPendingFlushes[0]));
+        data++;
+        count--;
+        nbEvents++;
+    }
+    pthread_mutex_unlock(&mFlushLock);
 
     do {
         // see if we have some leftover from the last poll()
@@ -406,6 +457,24 @@ static int poll__poll(struct sensors_poll_device_t *dev,
     return ctx->pollEvents(data, count);
 }
 
+/* The drivers have no FIFO (fifoMaxEventCount is 0), so batching reduces to
+ * the sampling period and max_report_latency_ns is ignored. */
+static int poll__batch(struct sensors_poll_device_1 *dev, int handle,
+                       int flags __unused, int64_t period_ns,
+                       int64_t max_report_latency_ns __unused)
+{
+    FUNC_LOG;
+    sensors_poll_context_t *ctx = (sensors_poll_context_t *)dev;
+    return ctx->setDelay(handle, period_ns);
+}
+
+static int poll__flush(struct sensors_poll_device_1 *dev, int handle)
+{
+    FUNC_LOG;
+    sensors_poll_context_t *ctx = (sensors_poll_context_t *)dev;
+    return ctx->flush(handle);
+}
+
 /*****************************************************************************/
 
 /** Open a new instance of a sensor device using name */
@@ -417,16 +486,18 @@ static int open_sensors(const struct hw_module_t* module,
     int status = -EINVAL;
     sensors_poll_context_t *dev = new sensors_poll_context_t();
 
-    memset(&dev->device, 0, sizeof(sensors_poll_device_t));
+    memset(&dev->device, 0, sizeof(sensors_poll_device_1));
 
+    /* android.hardware.sensors@1.0-impl requires device API 1.3 or later. */
     dev->device.common.tag = HARDWARE_DEVICE_TAG;
-    // TODO: We can't expect this version to be supported forever...
-    dev->device.common.version  = SENSORS_DEVICE_API_VERSION_0_1;
+    dev->device.common.version  = SENSORS_DEVICE_API_VERSION_1_3;
     dev->device.common.module   = const_cast<hw_module_t*>(module);
     dev->device.common.close    = poll__close;
     dev->device.activate        = poll__activate;
     dev->device.setDelay        = poll__setDelay;
     dev->device.poll            = poll__poll;
+    dev->device.batch           = poll__batch;
+    dev->device.flush           = poll__flush;
 
     *device = &dev->device.common;
     status = 0;
