@@ -107,6 +107,11 @@ PRODUCT_PACKAGES += \
     android.hardware.memtrack@1.0-impl \
     android.hardware.memtrack@1.0-service
 
+# DDK 1.14's glTexSubImage2D() into an EGLImage texture ignores the gralloc
+# stride; hwui fills hardware bitmaps through a CPU mapping instead.
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.hwui.hardware_bitmap_cpu_upload=true
+
 # DDK 1.14 advertises OpenGL ES 2.0 only.
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.opengles.version=131072 \
