@@ -96,11 +96,13 @@ PRODUCT_PACKAGES += \
 PRODUCT_COPY_FILES += \
     $(DEVICE_FOLDER)/gps/gps.conf:$(TARGET_COPY_OUT_VENDOR)/etc/gps.conf
 
-# Graphics: gralloc and hwcomposer are the DDK 1.14 blobs, loaded in
-# process through the passthrough allocator, mapper and composer.
+# Graphics: gralloc and hwcomposer are the DDK 1.14 blobs. gralloc loads in
+# process through the passthrough allocator and mapper; hwcomposer.omap4
+# runs in the composer 2.1 service, which wraps the HWC1 module in
+# hwc2on1adapter (Android 11 builds no composer -impl library).
 PRODUCT_PACKAGES += \
     android.hardware.graphics.allocator@2.0-impl \
-    android.hardware.graphics.composer@2.1-impl \
+    android.hardware.graphics.composer@2.1-service \
     android.hardware.graphics.mapper@2.0-impl \
     android.hardware.memtrack@1.0-impl \
     android.hardware.memtrack@1.0-service
