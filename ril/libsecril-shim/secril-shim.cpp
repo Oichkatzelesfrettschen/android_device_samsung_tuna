@@ -202,6 +202,13 @@ static void onRequestShim(int request, void *data, size_t datalen, RIL_Token t)
 			onRequestVoiceRadioTech(t);
 			return;
 #endif
+		/* libsec-ril predates RIL_REQUEST_DEVICE_IDENTITY and never answers
+		 * it. GET_IMEI carries the only GSM identity it has; the completion
+		 * below reshapes the reply, which reaches us under the same token. */
+		case RIL_REQUEST_DEVICE_IDENTITY:
+			RLOGI("%s: got request %s: sending GET_IMEI instead.", __FUNCTION__, requestToString(request));
+			origRilFunctions->onRequest(RIL_REQUEST_GET_IMEI, NULL, 0, t);
+			return;
 		/* Necessary; RILJ may fake this for us if we reply not supported, but we can just implement it. */
 		case RIL_REQUEST_GET_RADIO_CAPABILITY:
 			if (CC_LIKELY(onRequestGetRadioCapability(t))) {
@@ -292,6 +299,17 @@ static void onRequestCompleteShim(RIL_Token t, RIL_Errno e, void *response, size
 				return;
 			}
 			/* If this was already a v6 reply, continue as usual. */
+			break;
+		case RIL_REQUEST_DEVICE_IDENTITY:
+			/* The GET_IMEI reply is one string; DEVICE_IDENTITY answers
+			 * IMEI, IMEISV, ESN and MEID. */
+			if (e == RIL_E_SUCCESS && response != NULL && responselen == sizeof(char *)) {
+				char empty[] = "";
+				char *identity[4] = { (char *) response, empty, empty, empty };
+				RLOGI("%s: got request %s: answering from GET_IMEI.", __FUNCTION__, requestToString(request));
+				rilEnv->OnRequestComplete(t, e, identity, sizeof(identity));
+				return;
+			}
 			break;
 	}
 
