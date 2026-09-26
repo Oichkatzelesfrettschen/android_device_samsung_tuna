@@ -172,8 +172,11 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     android.hardware.usb@1.0-service.basic
 
+# The 3.0 f_fs has no aio_read/aio_write, so adbd's legacy FunctionFS path
+# must use blocking reads and writes (usb_legacy.cpp create_usb_handle()).
 PRODUCT_PROPERTY_OVERRIDES += \
-    ro.adb.nonblocking_ffs=false
+    ro.adb.nonblocking_ffs=false \
+    sys.usb.ffs.aio_compat=true
 
 # post_process_props.py leaves persist.sys.usb.config at "none" when
 # ro.adb.secure=1, which keeps USB off until USB debugging is enabled on
