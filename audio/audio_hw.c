@@ -1162,7 +1162,9 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
     }
 
     str_parms_destroy(parms);
-    return ret;
+    /* str_parms_get_str() returns the value length, and the HIDL wrapper
+     * (analyzeStatus()) treats any non-zero status as a failure. */
+    return 0;
 }
 
 static char * out_get_parameters(const struct audio_stream *stream, const char *keys)
@@ -1638,7 +1640,9 @@ static int in_set_parameters(struct audio_stream *stream, const char *kvpairs)
     pthread_mutex_unlock(&adev->lock);
 
     str_parms_destroy(parms);
-    return ret;
+    /* str_parms_get_str() returns the value length, and the HIDL wrapper
+     * (analyzeStatus()) treats any non-zero status as a failure. */
+    return 0;
 }
 
 static char * in_get_parameters(const struct audio_stream *stream __unused,
@@ -2688,7 +2692,9 @@ static int adev_set_parameters(struct audio_hw_device *dev, const char *kvpairs)
     }
 
     str_parms_destroy(parms);
-    return ret;
+    /* str_parms_get_str() returns the value length, and the HIDL wrapper
+     * (analyzeStatus()) treats any non-zero status as a failure. */
+    return 0;
 }
 
 static char * adev_get_parameters(const struct audio_hw_device *dev __unused,
