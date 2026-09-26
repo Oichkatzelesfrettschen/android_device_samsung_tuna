@@ -169,6 +169,7 @@ struct sensors_poll_context_t {
     int activate(int handle, int enabled);
     int setDelay(int handle, int64_t ns);
     int pollEvents(sensors_event_t* data, int count);
+    int batch(int handle, int64_t ns);
     int flush(int handle);
 
 private:
@@ -321,6 +322,22 @@ int sensors_poll_context_t::setDelay(int handle, int64_t ns)
     return mSensors[index]->setDelay(handle, ns);
 }
 
+/* batch() sets the sampling period through the driver's setDelay(), whose
+ * return values predate batching: MPLSensor::update_delay() returns 1 after
+ * it reprograms the FIFO rate, and ProximitySensor has no rate control and
+ * always returns -1. sensors@1.0-impl turns any non-zero status into a
+ * failed registration, so only a negative status from a driver with a rate
+ * reaches it. */
+int sensors_poll_context_t::batch(int handle, int64_t ns)
+{
+    FUNC_LOG;
+    int index = handleToDriver(handle);
+    if (index < 0) return index;
+    int err = mSensors[index]->setDelay(handle, ns);
+    if (index == proximity) return 0;
+    return err < 0 ? err : 0;
+}
+
 /* No sensor here batches in hardware, so a flush completes at once: the
  * META_DATA_FLUSH_COMPLETE event is queued and poll() is woken to return it.
  * One-shot sensors have no flush (sensors.h, device API 1.1 and later). */
@@ -465,7 +482,7 @@ static int poll__batch(struct sensors_poll_device_1 *dev, int handle,
 {
     FUNC_LOG;
     sensors_poll_context_t *ctx = (sensors_poll_context_t *)dev;
-    return ctx->setDelay(handle, period_ns);
+    return ctx->batch(handle, period_ns);
 }
 
 static int poll__flush(struct sensors_poll_device_1 *dev, int handle)
