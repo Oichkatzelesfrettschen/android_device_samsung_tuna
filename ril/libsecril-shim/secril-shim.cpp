@@ -301,9 +301,11 @@ static void onRequestCompleteShim(RIL_Token t, RIL_Errno e, void *response, size
 			/* If this was already a v6 reply, continue as usual. */
 			break;
 		case RIL_REQUEST_DEVICE_IDENTITY:
-			/* The GET_IMEI reply is one string; DEVICE_IDENTITY answers
-			 * IMEI, IMEISV, ESN and MEID. */
-			if (e == RIL_E_SUCCESS && response != NULL && responselen == sizeof(char *)) {
+			/* The GET_IMEI reply is one string, response points at its
+			 * characters (libril responseString() ignores responselen, and
+			 * libsec-ril passes the string length there); DEVICE_IDENTITY
+			 * answers IMEI, IMEISV, ESN and MEID. */
+			if (e == RIL_E_SUCCESS && response != NULL) {
 				char empty[] = "";
 				char *identity[4] = { (char *) response, empty, empty, empty };
 				RLOGI("%s: got request %s: answering from GET_IMEI.", __FUNCTION__, requestToString(request));
