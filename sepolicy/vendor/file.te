@@ -3,3 +3,4 @@ type tee_file, file_type;
 type sysfs_tuna_otg, fs_type, sysfs_type;
 type sysfs_gps, fs_type, sysfs_type;
 type proc_gps_control, fs_type, proc_type;
+type sysfs_sgxfreq, fs_type, sysfs_type;

@@ -3,3 +3,4 @@ type tee_block_device, dev_type;
 type modem_block_device, dev_type;
 type an30259a_leds_device, dev_type;
 type gps_device, dev_type;
+type cpu_dma_latency_device, dev_type;

@@ -9,3 +9,4 @@ genfscon sysfs /devices/virtual/sec/gps                         u:object_r:sysfs
 genfscon sysfs /devices/virtual/gpio/gpio136                    u:object_r:sysfs_gps:s0
 genfscon sysfs /devices/virtual/gpio/gpio137                    u:object_r:sysfs_gps:s0
 genfscon sysfs /devices/tuna_otg                                u:object_r:sysfs_tuna_otg:s0
+genfscon sysfs /devices/platform/omap/pvrsrvkm.0/sgxfreq          u:object_r:sysfs_sgxfreq:s0
