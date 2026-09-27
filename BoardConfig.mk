@@ -39,6 +39,11 @@ BOARD_KERNEL_PAGESIZE := 2048
 BOARD_KERNEL_IMAGE_NAME := zImage
 BOARD_KERNEL_CMDLINE := androidboot.hardware=$(TARGET_BOOTLOADER_BOARD_NAME)
 BOARD_KERNEL_CMDLINE += androidboot.selinux=permissive
+# CONFIG_CMDLINE_EXTEND puts this cmdline after CONFIG_CMDLINE's vmalloc=768M,
+# so the later value sizes the vmalloc area. 384M leaves a 501 MB lowmem
+# (Normal) zone instead of 108 MB, which keeps the in-kernel LMK from killing
+# foreground apps; peak VmallocUsed stays near 90 MB with the SGX DDK 1.14.
+BOARD_KERNEL_CMDLINE += vmalloc=384M
 TARGET_KERNEL_CONFIG := tuna_defconfig
 TARGET_KERNEL_SOURCE := kernel/samsung/tuna
 TARGET_KERNEL_CLANG_COMPILE := false
