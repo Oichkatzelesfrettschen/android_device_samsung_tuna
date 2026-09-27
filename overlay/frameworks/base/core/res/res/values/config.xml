@@ -274,4 +274,11 @@
     <!-- Configuration to support SIM contact batch operation -->
     <bool name="config_sim_phonebook_batch_operation">false</bool>
 
+    <!-- The home-screen wallpaper shows unscaled. The composer places a
+         layer that needs no scaling on the OMAP4 DSS GFX pipeline, the only
+         one left when the launcher and the system bars use the three video
+         pipelines; a scaled wallpaper falls to client composition, which puts
+         SurfaceFlinger's GPU work on every frame's release path. -->
+    <item name="config_wallpaperMaxScale" format="float" type="dimen">1</item>
+
 </resources>
