@@ -27,9 +27,6 @@ $(call inherit-product, hardware/ti/omap4/omap4.mk)
 $(call inherit-product, $(SRC_TARGET_DIR)/product/product_launched_with_k.mk)
 
 DEVICE_PACKAGE_OVERLAYS += $(DEVICE_FOLDER)/overlay
-# Product overlays resolve first match first. The tuna wallpaper must precede
-# Lineage's common wallpaper, which has the same xhdpi resource name.
-PRODUCT_PACKAGE_OVERLAYS := $(DEVICE_FOLDER)/product-overlay $(PRODUCT_PACKAGE_OVERLAYS)
 
 PRODUCT_AAPT_CONFIG := normal
 PRODUCT_AAPT_PREF_CONFIG := xhdpi
