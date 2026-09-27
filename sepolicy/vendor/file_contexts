@@ -15,6 +15,7 @@
 
 # Character devices
 /dev/an30259a_leds              u:object_r:an30259a_leds_device:s0
+/dev/cpu_dma_latency            u:object_r:cpu_dma_latency_device:s0
 /dev/umts_.*                    u:object_r:radio_device:s0
 /dev/cdma_.*                    u:object_r:radio_device:s0
 /dev/lte_.*                     u:object_r:radio_device:s0

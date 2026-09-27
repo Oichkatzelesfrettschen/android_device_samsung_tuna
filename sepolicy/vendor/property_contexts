@@ -1,1 +1,2 @@
 vendor.tee_fs.           u:object_r:tee_fs_prop:s0
+vendor.power.             u:object_r:vendor_power_prop:s0

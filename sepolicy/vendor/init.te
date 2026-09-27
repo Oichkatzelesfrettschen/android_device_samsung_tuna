@@ -1,0 +1,4 @@
+# init.omap4.rc selects the sgxfreq governor and hands its boost and limit
+# nodes to the power HAL's user.
+allow init sysfs_sgxfreq:dir search;
+allow init sysfs_sgxfreq:file { setattr w_file_perms };

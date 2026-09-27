@@ -13,6 +13,9 @@
 /dev/pvrsrvkm             0666   system     system
 /dev/pvr_sync             0666   system     system
 
+# cpuidle PM QoS; the power HAL holds a request during input boosts
+/dev/cpu_dma_latency      0660   root       system
+
 #for Sensors
 /dev/mpu                  0660   system     system
 /dev/mpuirq               0660   system     system
