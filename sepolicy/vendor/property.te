@@ -1,1 +1,2 @@
 vendor_internal_prop(tee_fs_prop)
+vendor_internal_prop(vendor_power_prop)

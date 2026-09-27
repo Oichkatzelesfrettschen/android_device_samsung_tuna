@@ -5,3 +5,4 @@ allow hal_power_default sysfs_devices_system_cpu:file rw_file_perms;
 allow hal_power_default sysfs_sgxfreq:dir search;
 allow hal_power_default sysfs_sgxfreq:file rw_file_perms;
 allow hal_power_default cpu_dma_latency_device:chr_file rw_file_perms;
+get_prop(hal_power_default, vendor_power_prop)
