@@ -6,3 +6,7 @@ allow hal_power_default sysfs_sgxfreq:dir search;
 allow hal_power_default sysfs_sgxfreq:file rw_file_perms;
 allow hal_power_default cpu_dma_latency_device:chr_file rw_file_perms;
 get_prop(hal_power_default, vendor_power_prop)
+# setInteractive(true) writes "on" to /sys/power/state to run the kernel's
+# late resume, then reads wait_for_fb_wake until the last handler has run.
+allow hal_power_default sysfs_power:file w_file_perms;
+allow hal_power_default sysfs_fb_earlysuspend:file r_file_perms;

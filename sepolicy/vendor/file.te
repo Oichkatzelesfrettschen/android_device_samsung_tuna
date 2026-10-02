@@ -4,3 +4,6 @@ type sysfs_tuna_otg, fs_type, sysfs_type;
 type sysfs_gps, fs_type, sysfs_type;
 type proc_gps_control, fs_type, proc_type;
 type sysfs_sgxfreq, fs_type, sysfs_type;
+# fbearlysuspend's wait_for_fb_sleep and wait_for_fb_wake, which block until
+# the earlysuspend state machine reaches the display-stopped or drawing state.
+type sysfs_fb_earlysuspend, fs_type, sysfs_type;
