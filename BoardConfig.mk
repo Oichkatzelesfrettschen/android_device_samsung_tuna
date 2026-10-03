@@ -44,6 +44,11 @@ BOARD_KERNEL_CMDLINE += androidboot.selinux=permissive
 # (Normal) zone instead of 108 MB, which keeps the in-kernel LMK from killing
 # foreground apps; peak VmallocUsed stays near 90 MB with the SGX DDK 1.14.
 BOARD_KERNEL_CMDLINE += vmalloc=384M
+# omap_wdt pets WDT2 from its own delay IRQ by default, which keeps the board
+# alive through any hang that leaves interrupts running. With kernelpet=0 the
+# timer arms only when watchdogd opens /dev/watchdog, so a stalled userspace
+# resets the board within watchdogd's interval plus margin.
+BOARD_KERNEL_CMDLINE += omap_wdt.kernelpet=0
 TARGET_KERNEL_CONFIG := tuna_defconfig
 TARGET_KERNEL_SOURCE := kernel/samsung/tuna
 TARGET_KERNEL_CLANG_COMPILE := false
