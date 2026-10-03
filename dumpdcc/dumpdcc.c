@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <string.h>
+#include <unistd.h>
 #include <linux/i2c-dev.h>
 
 #define LOG_TAG "dumpdcc"
@@ -12,7 +13,7 @@
 
 #define I2C_DEVICE "/dev/i2c-2"
 #define I2C_ADDRESS 0x3E
-#define MTD_DEVICE "/dev/mtd/mtd0"
+#define MTD_DEVICE "/dev/mtd0"
 #define DCC_FILE "/data/misc/cameraserver/R5_MVEN003_LD2_ND0_IR0_SH0_FL1_SVEN003_DCCID1044/calib.bin"
 
 int i2c_file;

@@ -32,6 +32,11 @@ on fs
 on post-fs-data
     # camera calibration
     mkdir /data/misc/cameraserver/R5_MVEN003_LD2_ND0_IR0_SH0_FL1_SVEN003_DCCID1044 0700 cameraserver cameraserver
+    # dumpdcc reads the camera module flash over i2c-2. The first Ducati
+    # I2C resource request disables the MPU's i2c-2 IRQ
+    # (rprm_i2c_request -> i2c_detect_ext_master), so dumpdcc completes
+    # here, before class hal starts the camera provider.
+    exec_start dumpdcc
 
     mkdir /data/radio 0775 radio radio
     mkdir /data/radio/log 0775 radio radio
@@ -98,9 +103,9 @@ on property:sys.boot_completed=1
     setprop sys.io.scheduler "bfq"
 
 service dumpdcc /vendor/bin/dumpdcc
-    class late_start
     user cameraserver
     group cameraserver
+    disabled
     oneshot
 
 service tf_daemon /vendor/bin/tf_daemon -d -c /vendor/etc/smc_normal_world_android_cfg.ini
