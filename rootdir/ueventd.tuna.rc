@@ -56,7 +56,7 @@
 /dev/cdma_cplog		0660	radio	radio
 
 # Camera
-/dev/mtd/mtd0             0600   cameraserver cameraserver
+/dev/mtd0                 0600   cameraserver cameraserver
 /dev/i2c-2                0600   cameraserver cameraserver
 
 # NFC

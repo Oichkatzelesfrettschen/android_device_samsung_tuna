@@ -68,12 +68,15 @@ PRODUCT_PACKAGES += \
     android.hardware.bluetooth@1.0-service \
     libbt-vendor
 
-# Camera: HAL1 behind the legacy provider
+# Camera: HAL1 behind the legacy provider; dumpdcc copies the sensor
+# calibration from the camera module flash into the DCC directory that
+# the OMX camera proxy reads at DCC_Init().
 PRODUCT_PACKAGES += \
     android.hardware.camera.provider@2.4-impl-legacy \
     android.hardware.camera.provider@2.4-service \
     camera.device@1.0-impl-legacy \
     camera.omap4 \
+    dumpdcc \
     Snap
 
 PRODUCT_PROPERTY_OVERRIDES += \
