@@ -57,10 +57,12 @@ TARGET_KERNEL_SOURCE := kernel/samsung/tuna
 # the arm-linux-androideabi target. pvr-km.mk takes the same directory and
 # IAS mode through PVR_KM_LLVM, so pvrsrvkm.ko and omaplfb.ko match the
 # kernel's symbol CRCs.
+# The device BoardConfig is read before vendor/lineage/config/BoardConfigKernel.mk
+# defines BUILD_TOP, so abspath resolves the directory against the build top.
 TARGET_KERNEL_CLANG_COMPILE := true
 TARGET_KERNEL_CLANG_VERSION := r584948
 KERNEL_LTO := thin
-TUNA_KERNEL_LLVM := $(BUILD_TOP)/prebuilts/clang/host/$(HOST_PREBUILT_TAG)/clang-$(TARGET_KERNEL_CLANG_VERSION)/bin/
+TUNA_KERNEL_LLVM := $(abspath prebuilts/clang/host/$(HOST_PREBUILT_TAG)/clang-$(TARGET_KERNEL_CLANG_VERSION)/bin)/
 TARGET_KERNEL_ADDITIONAL_FLAGS := LLVM=$(TUNA_KERNEL_LLVM) LLVM_IAS=1 KCFLAGS=-Werror
 PVR_KM_LLVM := $(TUNA_KERNEL_LLVM)
 PVR_KM_LLVM_IAS := 1
