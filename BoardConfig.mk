@@ -31,9 +31,6 @@ TARGET_USES_64_BIT_BINDER := true
 # The kernel carries memfd_create (syscall 385) from the 3.17 series.
 TARGET_HAS_MEMFD_BACKPORT := true
 
-# Kernel: the 3.0 tree builds with GCC 4.9 only. The default toolchain is
-# the absolute arm-linux-androidkernel- wrapper set in
-# prebuilts/gcc/.../arm-linux-androideabi-4.9, which links to that GCC.
 BOARD_KERNEL_BASE := 0x80000000
 BOARD_KERNEL_PAGESIZE := 2048
 BOARD_KERNEL_IMAGE_NAME := zImage
@@ -51,7 +48,22 @@ BOARD_KERNEL_CMDLINE += vmalloc=384M
 BOARD_KERNEL_CMDLINE += omap_wdt.kernelpet=0
 TARGET_KERNEL_CONFIG := tuna_defconfig
 TARGET_KERNEL_SOURCE := kernel/samsung/tuna
-TARGET_KERNEL_CLANG_COMPILE := false
+# Kernel and SGX-KM build with Android Clang 22 (clang-r584948) under
+# LTO_CLANG_THIN. kernel.mk puts the clang directory first in PATH and passes
+# CC="ccache clang"; LLVM= names that same directory for ld.lld and the
+# llvm binutils, which the ThinLTO link of bitcode objects requires, and
+# LLVM_IAS=1 assembles with clang. CROSS_COMPILE keeps the
+# arm-linux-androidkernel- prefix, from which the kernel Makefile derives
+# the arm-linux-androideabi target. pvr-km.mk takes the same directory and
+# IAS mode through PVR_KM_LLVM, so pvrsrvkm.ko and omaplfb.ko match the
+# kernel's symbol CRCs.
+TARGET_KERNEL_CLANG_COMPILE := true
+TARGET_KERNEL_CLANG_VERSION := r584948
+KERNEL_LTO := thin
+TUNA_KERNEL_LLVM := $(BUILD_TOP)/prebuilts/clang/host/$(HOST_PREBUILT_TAG)/clang-$(TARGET_KERNEL_CLANG_VERSION)/bin/
+TARGET_KERNEL_ADDITIONAL_FLAGS := LLVM=$(TUNA_KERNEL_LLVM) LLVM_IAS=1 KCFLAGS=-Werror
+PVR_KM_LLVM := $(TUNA_KERNEL_LLVM)
+PVR_KM_LLVM_IAS := 1
 
 # Treble: no vendor partition and no VNDK. /vendor is /system/vendor.
 DEVICE_MANIFEST_FILE := $(DEVICE_FOLDER)/manifest.xml
