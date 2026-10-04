@@ -115,6 +115,15 @@ PRODUCT_PACKAGES += \
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.hwui.hardware_bitmap_cpu_upload=true
 
+# Skia replaces every color clear on the SGX540 with a full-screen draw;
+# usedrawinsteadofclear=false issues glClear, which a tile-based GPU can
+# fold into the tile load. savebehind=false records fading edges as a plain
+# save, so they clip hard instead of copying the partial frame out of the
+# render target mid-pass.
+PRODUCT_PROPERTY_OVERRIDES += \
+    renderthread.skia.usedrawinsteadofclear=false \
+    renderthread.skia.savebehind=false
+
 # DDK 1.14 advertises OpenGL ES 2.0 only.
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.opengles.version=131072 \
