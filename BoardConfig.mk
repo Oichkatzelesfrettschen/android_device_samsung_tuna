@@ -168,3 +168,9 @@ BOARD_VENDOR_SEPOLICY_DIRS += $(DEVICE_FOLDER)/sepolicy/textrel
 # installed recovery stays TWRP unless persist.vendor.recovery_update is set.
 TARGET_RECOVERY_FSTAB := $(DEVICE_FOLDER)/rootdir/fstab.tuna
 TARGET_RECOVERY_PIXEL_FORMAT := "BGRA_8888"
+# The kernel unpacks gzip and lzma initramfs images, so the recovery ramdisk
+# stays gzip, and recovery.img must fit BOARD_RECOVERYIMAGE_PARTITION_SIZE
+# beside the zImage. The mdpi resources (bootable/recovery/res-mdpi and the
+# 12x22 font) take about half the bytes of the xhdpi set that the 320 dpi
+# screen otherwise selects.
+TARGET_RECOVERY_DENSITY := mdpi
