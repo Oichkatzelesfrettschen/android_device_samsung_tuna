@@ -192,6 +192,12 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     android.hardware.usb@1.0-service.basic
 
+# The 3.0 kernel has no bpf(2). The legacy-kernel bpfloader and netd read
+# ro.kernel.ebpf.supported (default true) to skip loading BPF objects and keep
+# traffic accounting on xt_qtaguid and xt_quota2.
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.kernel.ebpf.supported=false
+
 # The 3.0 f_fs has no aio_read/aio_write, so adbd's legacy FunctionFS path
 # must use blocking reads and writes (usb_legacy.cpp create_usb_handle()).
 PRODUCT_PROPERTY_OVERRIDES += \
