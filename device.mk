@@ -144,11 +144,12 @@ PRODUCT_PACKAGES += \
     android.hardware.health@2.1-impl \
     android.hardware.health@2.1-service
 
-# Keymaster: the TrustZone keystore through the keymaster0 wrapper
+# Keymaster 3.0 passthrough. createKeymaster3Device() opens keymaster1 and
+# keymaster2 modules only; with no keystore module it serves the software
+# SoftKeymasterDevice, which km_compat wraps for keystore2.
 PRODUCT_PACKAGES += \
     android.hardware.keymaster@3.0-impl \
-    android.hardware.keymaster@3.0-service \
-    keystore.tuna
+    android.hardware.keymaster@3.0-service
 
 PRODUCT_PACKAGES += \
     android.hardware.gatekeeper@1.0-service.software
