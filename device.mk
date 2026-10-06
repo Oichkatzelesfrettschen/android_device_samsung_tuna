@@ -73,14 +73,15 @@ PRODUCT_PACKAGES += \
 
 # Camera: HAL1 behind the legacy provider; dumpdcc copies the sensor
 # calibration from the camera module flash into the DCC directory that
-# the OMX camera proxy reads at DCC_Init().
+# the OMX camera proxy reads at DCC_Init(). The camera app is Camera2 from
+# handheld_product.mk, which camera2.portability.force_api=1 (omap4.mk)
+# keeps on the API1 path.
 PRODUCT_PACKAGES += \
     android.hardware.camera.provider@2.4-impl-legacy \
     android.hardware.camera.provider@2.4-service \
     camera.device@1.0-impl-legacy \
     camera.omap4 \
-    dumpdcc \
-    Snap
+    dumpdcc
 
 PRODUCT_PROPERTY_OVERRIDES += \
     camera.disable_zsl_mode=1 \
