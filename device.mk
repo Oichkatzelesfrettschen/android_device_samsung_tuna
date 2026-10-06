@@ -133,7 +133,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
     ro.opengles.version=131072 \
     ro.hardware.egl=POWERVR_SGX540_120 \
     debug.renderengine.backend=gles \
-    debug.hwui.renderer=opengl \
     ro.zygote.disable_gl_preload=true \
     ro.bq.gpu_to_cpu_unsupported=1 \
     ro.sf.lcd_density=320 \
@@ -268,14 +267,12 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.usb.host.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.usb.host.xml \
     frameworks/native/data/etc/android.software.sip.voip.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.software.sip.voip.xml
 
-# Low RAM. ro.config.low_ram (from the Go profile) turns off hardware UI
-# rendering, which artifacts on SGX540; force_highendgfx restores it.
+# Low RAM. ro.config.low_ram (from the Go profile) moves only system_server's
+# own windows to software rendering (ThreadedRenderer.initForSystemProcess());
+# SystemUI and apps keep the GPU.
 PRODUCT_PROPERTY_OVERRIDES += \
-    persist.sys.force_highendgfx=true \
-    config.disable_atlas=true \
     dalvik.vm.dex2oat-threads=1 \
     pm.dexopt.shared=quicken \
-    ro.config.max_starting_bg=1 \
     ro.config.small_battery=true
 
 # Apps without a profile preopt at verify. SystemUI joins the launcher, which
