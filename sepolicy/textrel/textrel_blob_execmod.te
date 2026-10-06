@@ -6,13 +6,11 @@
 # GNSS HAL service through gps.tuna. Every other vendor library stays
 # vendor_file. The labels sit beside this file in file_contexts.
 #
-# system/sepolicy/public/domain.te forbids execmod on any file_type outside
-# the untrusted_app_25/27 data types, so this policy compiles only on a
-# platform policy that exempts rild and hal_gnss_server from those two
-# neverallows.
+# system/sepolicy/public/domain.te exempts textrel_vendor_lib_file from its
+# execmod neverallows, bounded to vendor_file_type and kept off coredomain.
 
-type rild_textrel_lib_file, vendor_file_type, file_type;
-type gnss_textrel_lib_file, vendor_file_type, file_type;
+type rild_textrel_lib_file, vendor_file_type, textrel_vendor_lib_file, file_type;
+type gnss_textrel_lib_file, vendor_file_type, textrel_vendor_lib_file, file_type;
 
 allow rild rild_textrel_lib_file:file { r_file_perms execute execmod };
 allow hal_gnss_default gnss_textrel_lib_file:file { r_file_perms execute execmod };

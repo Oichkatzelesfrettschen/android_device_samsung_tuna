@@ -158,8 +158,8 @@ WITH_DEXPREOPT := true
 DONT_DEXPREOPT_PREBUILTS := true
 
 # SELinux. sepolicy/textrel holds the execmod grant for the two DT_TEXTREL
-# blobs; it compiles only against a system/sepolicy that exempts rild and
-# hal_gnss_server from the execmod neverallows, and this one line removes it.
+# blobs; it compiles only against a system/sepolicy that defines the
+# textrel_vendor_lib_file attribute, and this one line removes it.
 BOARD_VENDOR_SEPOLICY_DIRS += $(DEVICE_FOLDER)/sepolicy/vendor
 BOARD_VENDOR_SEPOLICY_DIRS += $(DEVICE_FOLDER)/sepolicy/textrel
 
