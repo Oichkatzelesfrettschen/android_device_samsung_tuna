@@ -16,4 +16,4 @@
 *block/sda*                                             auto                auto      defaults                                              voldmanaged=usbdisk:auto
 
 # zRAM
-/dev/block/zram0                                        none                swap      defaults                                              zramsize=419430400
+/dev/block/zram0                                        none                swap      defaults                                              zramsize=536870912

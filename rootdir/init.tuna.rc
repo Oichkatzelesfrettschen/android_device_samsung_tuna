@@ -13,7 +13,12 @@ on init
 on fs
     mkdir /factory 0775 radio radio
     mkdir /tee 0770 drmrpc drmrpc
+    # comp_algorithm_store() returns -EBUSY once swapon_all sizes the device
+    # (drivers/block/zram/zram_drv.c), so the compressor and its two streams,
+    # one per Cortex-A9 core, are set first. fs_mgr's max_comp_streams= flag
+    # opens the sysfs node read-only and cannot set it.
     write /sys/block/zram0/comp_algorithm lz4
+    write /sys/block/zram0/max_comp_streams 2
     mount_all /vendor/etc/fstab.tuna
     swapon_all /vendor/etc/fstab.tuna
     write /proc/sys/vm/page-cluster 0
