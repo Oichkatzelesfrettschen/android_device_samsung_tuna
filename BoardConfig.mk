@@ -146,9 +146,16 @@ TARGET_TUNA_AUDIO_HDMI := true
 # tolerates it.
 BOARD_INVENSENSE_APPLY_COMPASS_NOISE_FILTER := true
 
-# Low RAM
+# Low RAM. MALLOC_SVELTE selects jemalloc5 without tcache over Scudo
+# (bionic/libc/Android.bp). Every app on /system preopts: verify-filter apps
+# keep their verified vdex on /system, so first boot skips verification and
+# /data holds no dexopt copy, and SystemUI, the launcher and system_server
+# map AOT code as clean, evictable file pages. The 2 GiB system partition
+# holds the odex and vdex files. Prebuilt APKs (WebView, microG) compile on
+# the device.
 MALLOC_SVELTE := true
-WITH_DEXPREOPT_BOOT_IMG_AND_SYSTEM_SERVER_ONLY := true
+WITH_DEXPREOPT := true
+DONT_DEXPREOPT_PREBUILTS := true
 
 # SELinux
 BOARD_VENDOR_SEPOLICY_DIRS += $(DEVICE_FOLDER)/sepolicy/vendor
