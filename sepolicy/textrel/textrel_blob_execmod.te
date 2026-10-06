@@ -1,0 +1,18 @@
+# libsec-ril.so (XMM6260 RIL) and lib_gsd4t_jellybean.so (SiRF GSD4t GNSS)
+# carry DT_TEXTREL. The linker applies their text relocations by remapping
+# the text pages writable and back to executable, which SELinux checks as
+# execmod on the library file. Each blob gets its own file type, and only the
+# domain that loads it gets execmod on it: rild through libsecril-shim, the
+# GNSS HAL service through gps.tuna. Every other vendor library stays
+# vendor_file. The labels sit beside this file in file_contexts.
+#
+# system/sepolicy/public/domain.te forbids execmod on any file_type outside
+# the untrusted_app_25/27 data types, so this policy compiles only on a
+# platform policy that exempts rild and hal_gnss_server from those two
+# neverallows.
+
+type rild_textrel_lib_file, vendor_file_type, file_type;
+type gnss_textrel_lib_file, vendor_file_type, file_type;
+
+allow rild rild_textrel_lib_file:file { r_file_perms execute execmod };
+allow hal_gnss_default gnss_textrel_lib_file:file { r_file_perms execute execmod };

@@ -157,8 +157,11 @@ MALLOC_SVELTE := true
 WITH_DEXPREOPT := true
 DONT_DEXPREOPT_PREBUILTS := true
 
-# SELinux
+# SELinux. sepolicy/textrel holds the execmod grant for the two DT_TEXTREL
+# blobs; it compiles only against a system/sepolicy that exempts rild and
+# hal_gnss_server from the execmod neverallows, and this one line removes it.
 BOARD_VENDOR_SEPOLICY_DIRS += $(DEVICE_FOLDER)/sepolicy/vendor
+BOARD_VENDOR_SEPOLICY_DIRS += $(DEVICE_FOLDER)/sepolicy/textrel
 
 # Recovery. The non-A/B OTA generator reads partition devices from the
 # recovery ramdisk fstab, so the build carries a recovery image; the
