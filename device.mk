@@ -269,10 +269,19 @@ PRODUCT_COPY_FILES += \
 
 # Low RAM. ro.config.low_ram (from the Go profile) moves only system_server's
 # own windows to software rendering (ThreadedRenderer.initForSystemProcess());
-# SystemUI and apps keep the GPU.
+# SystemUI and apps keep the GPU. One dex2oat thread, for app and boot image
+# compiles alike, bounds the compiler's peak arena on the dual A9. With the
+# in-kernel lowmemorykiller nothing reads per-app memcg soft limits, and the
+# 3.0 memcg charges every app's group from lowmem, so apps share the root
+# group (libprocessgroup/processgroup.cpp:103-105 defaults it to low_ram).
+# madvise-random turns off readahead on dex, oat and art mappings, as
+# go_defaults_512.prop does.
 PRODUCT_PROPERTY_OVERRIDES += \
     dalvik.vm.dex2oat-threads=1 \
+    dalvik.vm.image-dex2oat-threads=1 \
+    dalvik.vm.madvise-random=true \
     pm.dexopt.shared=quicken \
+    ro.config.per_app_memcg=false \
     ro.config.small_battery=true
 
 # Apps without a profile preopt at verify. SystemUI joins the launcher, which
