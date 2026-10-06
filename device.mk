@@ -198,11 +198,11 @@ PRODUCT_PROPERTY_OVERRIDES += \
     ro.adb.nonblocking_ffs=false \
     sys.usb.ffs.aio_compat=true
 
-# post_process_props.py leaves persist.sys.usb.config at "none" when
-# ro.adb.secure=1, which keeps USB off until USB debugging is enabled on
-# screen; debuggable builds start with adb.
+# post_process_props.py writes persist.sys.usb.config=none into every
+# build.prop that names no value, and init loads product/etc/build.prop
+# last, so a debuggable build names adb there to start with USB debugging.
 ifneq ($(TARGET_BUILD_VARIANT),user)
-PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
+PRODUCT_PRODUCT_PROPERTIES += \
     persist.sys.usb.config=adb
 endif
 
