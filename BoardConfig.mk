@@ -100,8 +100,11 @@ TARGET_USERIMAGES_USE_F2FS := true
 BOARD_BOOTIMAGE_PARTITION_SIZE := 8388608
 BOARD_RECOVERYIMAGE_PARTITION_SIZE := 12517376
 BOARD_CACHEIMAGE_FILE_SYSTEM_TYPE := ext4
-BOARD_CACHEIMAGE_PARTITION_SIZE := 452984832
-BOARD_USERDATAIMAGE_PARTITION_SIZE := 14539537408
+# The REPIT table (system=2G, cache=128M) gives cache 131072 KiB (p11) and
+# userdata sectors 4612096-30775295 (p12). A non-A/B 12 device keeps only
+# OTA staging and recovery logs on /cache.
+BOARD_CACHEIMAGE_PARTITION_SIZE := 134217728
+BOARD_USERDATAIMAGE_PARTITION_SIZE := 13395558400
 BOARD_FLASH_BLOCK_SIZE := 4096
 
 # System is 2 GiB after the REPIT repartition (system=2G). The stock
@@ -143,12 +146,22 @@ TARGET_TUNA_AUDIO_HDMI := true
 # tolerates it.
 BOARD_INVENSENSE_APPLY_COMPASS_NOISE_FILTER := true
 
-# Low RAM
+# Low RAM. MALLOC_SVELTE selects jemalloc5 without tcache over Scudo
+# (bionic/libc/Android.bp). Every app on /system preopts: verify-filter apps
+# keep their verified vdex on /system, so first boot skips verification and
+# /data holds no dexopt copy, and SystemUI, the launcher and system_server
+# map AOT code as clean, evictable file pages. The 2 GiB system partition
+# holds the odex and vdex files. Prebuilt APKs (WebView, microG) compile on
+# the device.
 MALLOC_SVELTE := true
-WITH_DEXPREOPT_BOOT_IMG_AND_SYSTEM_SERVER_ONLY := true
+WITH_DEXPREOPT := true
+DONT_DEXPREOPT_PREBUILTS := true
 
-# SELinux
+# SELinux. sepolicy/textrel holds the execmod grant for the two DT_TEXTREL
+# blobs; it compiles only against a system/sepolicy that defines the
+# textrel_vendor_lib_file attribute, and this one line removes it.
 BOARD_VENDOR_SEPOLICY_DIRS += $(DEVICE_FOLDER)/sepolicy/vendor
+BOARD_VENDOR_SEPOLICY_DIRS += $(DEVICE_FOLDER)/sepolicy/textrel
 
 # Recovery. The non-A/B OTA generator reads partition devices from the
 # recovery ramdisk fstab, so the build carries a recovery image; the

@@ -33,14 +33,17 @@ PRODUCT_AAPT_PREF_CONFIG := xhdpi
 PRODUCT_CHARACTERISTICS := nosdcard
 
 # Init and first-stage mount. The first-stage init in the boot ramdisk
-# reads fstab.<androidboot.hardware> from the ramdisk root.
+# reads fstab.<androidboot.hardware> from the ramdisk root. ueventd parses
+# /system/etc/ueventd.rc, which imports /vendor/etc/ueventd.rc; it reads
+# /vendor/ueventd.rc only when ro.product.first_api_level is 31 or lower,
+# and the system build.prop drops that key.
 PRODUCT_COPY_FILES += \
     $(DEVICE_FOLDER)/rootdir/fstab.tuna:$(TARGET_COPY_OUT_RAMDISK)/fstab.tuna \
     $(DEVICE_FOLDER)/rootdir/fstab.tuna:$(TARGET_COPY_OUT_VENDOR)/etc/fstab.tuna \
     $(DEVICE_FOLDER)/rootdir/init.tuna.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/hw/init.tuna.rc \
     $(DEVICE_FOLDER)/rootdir/init.tuna.usb.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/hw/init.tuna.usb.rc \
     $(DEVICE_FOLDER)/rootdir/android.hardware.sensors@1.0-service.tuna.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/android.hardware.sensors@1.0-service.tuna.rc \
-    $(DEVICE_FOLDER)/rootdir/ueventd.tuna.rc:$(TARGET_COPY_OUT_VENDOR)/ueventd.rc \
+    $(DEVICE_FOLDER)/rootdir/ueventd.tuna.rc:$(TARGET_COPY_OUT_VENDOR)/etc/ueventd.rc \
     $(DEVICE_FOLDER)/rootdir/tee-fs-setup.sh:$(TARGET_COPY_OUT_VENDOR)/bin/tee-fs-setup.sh
 
 # Audio
@@ -70,14 +73,15 @@ PRODUCT_PACKAGES += \
 
 # Camera: HAL1 behind the legacy provider; dumpdcc copies the sensor
 # calibration from the camera module flash into the DCC directory that
-# the OMX camera proxy reads at DCC_Init().
+# the OMX camera proxy reads at DCC_Init(). The camera app is Camera2 from
+# handheld_product.mk, which camera2.portability.force_api=1 (omap4.mk)
+# keeps on the API1 path.
 PRODUCT_PACKAGES += \
     android.hardware.camera.provider@2.4-impl-legacy \
     android.hardware.camera.provider@2.4-service \
     camera.device@1.0-impl-legacy \
     camera.omap4 \
-    dumpdcc \
-    Snap
+    dumpdcc
 
 PRODUCT_PROPERTY_OVERRIDES += \
     camera.disable_zsl_mode=1 \
@@ -129,7 +133,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
     ro.opengles.version=131072 \
     ro.hardware.egl=POWERVR_SGX540_120 \
     debug.renderengine.backend=gles \
-    debug.hwui.renderer=opengl \
     ro.zygote.disable_gl_preload=true \
     ro.bq.gpu_to_cpu_unsupported=1 \
     ro.sf.lcd_density=320 \
@@ -189,17 +192,23 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     android.hardware.usb@1.0-service.basic
 
+# The 3.0 kernel has no bpf(2). The legacy-kernel bpfloader and netd read
+# ro.kernel.ebpf.supported (default true) to skip loading BPF objects and keep
+# traffic accounting on xt_qtaguid and xt_quota2.
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.kernel.ebpf.supported=false
+
 # The 3.0 f_fs has no aio_read/aio_write, so adbd's legacy FunctionFS path
 # must use blocking reads and writes (usb_legacy.cpp create_usb_handle()).
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.adb.nonblocking_ffs=false \
     sys.usb.ffs.aio_compat=true
 
-# post_process_props.py leaves persist.sys.usb.config at "none" when
-# ro.adb.secure=1, which keeps USB off until USB debugging is enabled on
-# screen; debuggable builds start with adb.
+# post_process_props.py writes persist.sys.usb.config=none into every
+# build.prop that names no value, and init loads product/etc/build.prop
+# last, so a debuggable build names adb there to start with USB debugging.
 ifneq ($(TARGET_BUILD_VARIANT),user)
-PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
+PRODUCT_PRODUCT_PROPERTIES += \
     persist.sys.usb.config=adb
 endif
 
@@ -264,15 +273,28 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.usb.host.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.usb.host.xml \
     frameworks/native/data/etc/android.software.sip.voip.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.software.sip.voip.xml
 
-# Low RAM. ro.config.low_ram (from the Go profile) turns off hardware UI
-# rendering, which artifacts on SGX540; force_highendgfx restores it.
+# Low RAM. ro.config.low_ram (from the Go profile) moves only system_server's
+# own windows to software rendering (ThreadedRenderer.initForSystemProcess());
+# SystemUI and apps keep the GPU. One dex2oat thread, for app and boot image
+# compiles alike, bounds the compiler's peak arena on the dual A9. With the
+# in-kernel lowmemorykiller nothing reads per-app memcg soft limits, and the
+# 3.0 memcg charges every app's group from lowmem, so apps share the root
+# group (libprocessgroup/processgroup.cpp:103-105 defaults it to low_ram).
+# madvise-random turns off readahead on dex, oat and art mappings, as
+# go_defaults_512.prop does.
 PRODUCT_PROPERTY_OVERRIDES += \
-    persist.sys.force_highendgfx=true \
-    config.disable_atlas=true \
     dalvik.vm.dex2oat-threads=1 \
+    dalvik.vm.image-dex2oat-threads=1 \
+    dalvik.vm.madvise-random=true \
     pm.dexopt.shared=quicken \
-    ro.config.max_starting_bg=1 \
+    ro.config.per_app_memcg=false \
     ro.config.small_battery=true
+
+# Apps without a profile preopt at verify. SystemUI joins the launcher, which
+# vendor/lineage/config/common_mobile.mk lists, in the speed-app list that
+# dexpreopt compiles with the speed filter (build/soong/dexpreopt/dexpreopt.go).
+PRODUCT_DEX_PREOPT_DEFAULT_COMPILER_FILTER := verify
+PRODUCT_DEXPREOPT_SPEED_APPS += SystemUI
 
 $(call inherit-product, frameworks/native/build/phone-xhdpi-1024-dalvik-heap.mk)
 
