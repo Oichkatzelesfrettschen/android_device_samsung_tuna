@@ -527,6 +527,7 @@ static keymaster_error_t export_key(const keymaster1_device_t* api, keymaster_ke
         !application_matches(blob, KM_TAG_APPLICATION_DATA, app_data)) return KM_ERROR_INVALID_KEY_BLOB;
     Lock lock;
     CryptoSession session(device(api)->primary);
+    if (session.get() == CK_INVALID_HANDLE) return KM_ERROR_SECURE_HW_COMMUNICATION_FAILED;
     ObjectHandle public_key(&session), private_key(&session);
     if (keyblob_restore(&session, blob, &public_key, &private_key)) return KM_ERROR_INVALID_KEY_BLOB;
     CK_ATTRIBUTE attributes[] = {{CKA_MODULUS, nullptr, 0}, {CKA_PUBLIC_EXPONENT, nullptr, 0}};
@@ -563,6 +564,7 @@ static keymaster_error_t delete_key(const keymaster1_device_t* api, const keymas
         if (operation.handle && memcmp(operation.blob.key_material + 4, blob->key_material + 4, ID_LENGTH) == 0)
             clear_operation(&operation);
     CryptoSession session(dev->primary);
+    if (session.get() == CK_INVALID_HANDLE) return KM_ERROR_SECURE_HW_COMMUNICATION_FAILED;
     ObjectHandle public_key(&session), private_key(&session);
     bool found_public = find_single_object(blob->key_material + 4, ID_LENGTH, CKO_PUBLIC_KEY, &session, &public_key) == 0;
     bool found_private = find_single_object(blob->key_material + 4, ID_LENGTH, CKO_PRIVATE_KEY, &session, &private_key) == 0;
