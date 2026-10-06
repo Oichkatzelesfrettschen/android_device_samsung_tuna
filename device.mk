@@ -198,8 +198,10 @@ PRODUCT_PACKAGES += \
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.kernel.ebpf.supported=false
 
-# The 3.0 f_fs has no aio_read/aio_write, so adbd's legacy FunctionFS path
-# must use blocking reads and writes (usb_legacy.cpp create_usb_handle()).
+# adbd takes the blocking FunctionFS transport (daemon/usb_legacy.cpp) with
+# read(2)/write(2) on the bulk endpoints; ro.adb.nonblocking_ffs=false selects
+# it in usb_init() and sys.usb.ffs.aio_compat=true picks read/write over
+# per-call AIO inside it.
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.adb.nonblocking_ffs=false \
     sys.usb.ffs.aio_compat=true
