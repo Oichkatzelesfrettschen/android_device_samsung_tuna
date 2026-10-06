@@ -290,11 +290,10 @@ PRODUCT_PROPERTY_OVERRIDES += \
     ro.config.per_app_memcg=false \
     ro.config.small_battery=true
 
-# Apps without a profile preopt at verify. SystemUI joins the launcher, which
-# vendor/lineage/config/common_mobile.mk lists, in the speed-app list that
-# dexpreopt compiles with the speed filter (build/soong/dexpreopt/dexpreopt.go).
+# Apps without a profile preopt at verify. SystemUI and the launcher, which
+# vendor/lineage/config/common.mk and common_mobile.mk list as speed apps,
+# compile with the speed filter (build/soong/dexpreopt/dexpreopt.go).
 PRODUCT_DEX_PREOPT_DEFAULT_COMPILER_FILTER := verify
-PRODUCT_DEXPREOPT_SPEED_APPS += SystemUI
 
 $(call inherit-product, frameworks/native/build/phone-xhdpi-1024-dalvik-heap.mk)
 
