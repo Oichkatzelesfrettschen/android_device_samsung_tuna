@@ -150,7 +150,7 @@ static UniquePkey public_key(Session& session, const Bytes& blob) {
 }
 static bool operate(Session& session, hal::KeyPurpose purpose, const Bytes& blob, const Params& params,
                     const Bytes& input, const Bytes& signature, Bytes* output, Params* begin_output = nullptr,
-                    const char* diagnostic = nullptr) {
+                    const char* diagnostic = "operation") {
     if (!session.get() || blob.size() == 0) return false;
     uint64_t handle = 0;
     bool success = false;
@@ -295,12 +295,18 @@ int main(int argc, char** argv) {
         auto key = public_key(session, blob);
         return sign_verify(session, blob, key.get(), KM_PAD_RSA_PKCS1_1_5_SIGN);
     });
-    for (uint32_t bits : {512u, 1024u, 2048u, 3072u, 4096u}) {
-        Bytes blob;
-        bool generated = create(session, keys, rsa_params(bits), &blob);
-        const char* owner = generated && blob.size() > 4 && memcmp(blob.data(), "TTEE", 4) == 0 ? "TTEE" :
-            generated && blob.size() > 4 && memcmp(blob.data(), "TSFT", 4) == 0 ? "TSFT" : "ERROR";
-        printf("INFO rsa-size %u owner %s\n", bits, owner);
+    // The SST token holds 2048-bit RSA; every other size belongs to the software device.
+    static const struct { uint32_t bits; const char* name; const char* owner; } kOwners[] = {
+        {512, "rsa-512-owner-tsft", "TSFT"}, {1024, "rsa-1024-owner-tsft", "TSFT"},
+        {2048, "rsa-2048-owner-ttee", "TTEE"}, {3072, "rsa-3072-owner-tsft", "TSFT"},
+        {4096, "rsa-4096-owner-tsft", "TSFT"},
+    };
+    for (const auto& expected : kOwners) {
+        results.check(expected.name, [&] {
+            Bytes blob;
+            return create(session, keys, rsa_params(expected.bits), &blob) && blob.size() > 4 &&
+                memcmp(blob.data(), expected.owner, 4) == 0;
+        });
     }
     results.check("rsa-characteristics", [&] {
         bool success = false;
