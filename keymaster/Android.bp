@@ -1,0 +1,13 @@
+cc_binary {
+    name: "keystore_tuna_auth_probe",
+    vendor: false,
+    srcs: ["keystore_tuna_auth_probe.cpp"],
+    cpp_std: "c++17",
+    cflags: ["-Wall", "-Wextra", "-Werror"],
+    shared_libs: [
+        "android.hardware.security.keymint-V1-ndk_platform",
+        "android.system.keystore2-V1-ndk_platform",
+        "libbinder_ndk",
+        "libkeymint_support",
+    ],
+}
