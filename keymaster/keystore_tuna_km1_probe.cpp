@@ -18,6 +18,7 @@
 #include <hardware/keymaster1.h>
 #include <dlfcn.h>
 #include <stdio.h>
+#include <string.h>
 #include <time.h>
 #include <openssl/bn.h>
 #include <openssl/evp.h>
@@ -148,16 +149,20 @@ static UniquePkey public_key(Session& session, const Bytes& blob) {
     return key;
 }
 static bool operate(Session& session, hal::KeyPurpose purpose, const Bytes& blob, const Params& params,
-                    const Bytes& input, const Bytes& signature, Bytes* output, Params* begin_output = nullptr) {
+                    const Bytes& input, const Bytes& signature, Bytes* output, Params* begin_output = nullptr,
+                    const char* diagnostic = "operation") {
     if (!session.get() || blob.size() == 0) return false;
     uint64_t handle = 0;
     bool success = false;
+    hal::ErrorCode code = hal::ErrorCode::UNKNOWN_ERROR;
     auto started = session.get()->begin(purpose, blob, params,
         [&](hal::ErrorCode error, const Params& returned, uint64_t created) {
-            success = error == hal::ErrorCode::OK; handle = created;
+            code = error; success = error == hal::ErrorCode::OK; handle = created;
             if (begin_output) *begin_output = returned;
         });
     if (!started.isOk() || !success) {
+        if (diagnostic) fprintf(stderr, "INFO %s begin error %d transport %d\n", diagnostic,
+                                static_cast<int>(code), started.isOk());
         if (handle) (void)session.get()->abort(handle);
         return false;
     }
@@ -169,9 +174,11 @@ static bool operate(Session& session, hal::KeyPurpose purpose, const Bytes& blob
         success = false;
         auto updated = session.get()->update(handle, {}, remaining,
             [&](hal::ErrorCode error, uint32_t used, const Params&, const Bytes& produced) {
-                success = error == hal::ErrorCode::OK; consumed = used; append(output, produced);
+                code = error; success = error == hal::ErrorCode::OK; consumed = used; append(output, produced);
             });
         if (!updated.isOk() || !success || consumed == 0 || consumed > remaining.size()) {
+            if (diagnostic) fprintf(stderr, "INFO %s update error %d transport %d consumed %u\n",
+                                    diagnostic, static_cast<int>(code), updated.isOk(), consumed);
             (void)session.get()->abort(handle); return false;
         }
         offset += consumed;
@@ -179,13 +186,17 @@ static bool operate(Session& session, hal::KeyPurpose purpose, const Bytes& blob
     success = false;
     auto finished = session.get()->finish(handle, {}, {}, signature,
         [&](hal::ErrorCode error, const Params&, const Bytes& produced) {
-            success = error == hal::ErrorCode::OK; append(output, produced);
+            code = error; success = error == hal::ErrorCode::OK; append(output, produced);
         });
-    if (!finished.isOk() || !success) { (void)session.get()->abort(handle); return false; }
+    if (!finished.isOk() || !success) {
+        if (diagnostic) fprintf(stderr, "INFO %s finish error %d transport %d\n", diagnostic,
+                                static_cast<int>(code), finished.isOk());
+        (void)session.get()->abort(handle); return false;
+    }
     return true;
 }
-static Params rsa_params() {
-    return parameters({scalar(KM_TAG_ALGORITHM, KM_ALGORITHM_RSA), scalar(KM_TAG_KEY_SIZE, 2048),
+static Params rsa_params(uint32_t bits = 2048) {
+    return parameters({scalar(KM_TAG_ALGORITHM, KM_ALGORITHM_RSA), scalar(KM_TAG_KEY_SIZE, bits),
         scalar(KM_TAG_RSA_PUBLIC_EXPONENT, 65537), scalar(KM_TAG_PURPOSE, KM_PURPOSE_SIGN),
         scalar(KM_TAG_PURPOSE, KM_PURPOSE_VERIFY), scalar(KM_TAG_PURPOSE, KM_PURPOSE_ENCRYPT),
         scalar(KM_TAG_PURPOSE, KM_PURPOSE_DECRYPT), scalar(KM_TAG_DIGEST, KM_DIGEST_NONE),
@@ -228,12 +239,12 @@ static bool rsa_decrypt(Session& session, const Bytes& blob, EVP_PKEY* public_ke
     ciphertext.resize(length);
     return operate(session, hal::KeyPurpose::DECRYPT, blob, rsa_operation(padding), ciphertext, {}, &recovered) && equal(plaintext, recovered);
 }
-static bool pkcs8(Bytes* output) {
+static bool pkcs8(Bytes* output, uint32_t bits = 2048) {
     std::unique_ptr<RSA, decltype(&RSA_free)> rsa(RSA_new(), RSA_free);
     std::unique_ptr<BIGNUM, decltype(&BN_free)> exponent(BN_new(), BN_free);
     UniquePkey key(EVP_PKEY_new(), EVP_PKEY_free);
     if (!rsa || !exponent || !key || !BN_set_word(exponent.get(), 65537) ||
-        !RSA_generate_key_ex(rsa.get(), 2048, exponent.get(), nullptr) || !EVP_PKEY_assign_RSA(key.get(), rsa.get())) return false;
+        !RSA_generate_key_ex(rsa.get(), bits, exponent.get(), nullptr) || !EVP_PKEY_assign_RSA(key.get(), rsa.get())) return false;
     (void)rsa.release();
     std::unique_ptr<PKCS8_PRIV_KEY_INFO, decltype(&PKCS8_PRIV_KEY_INFO_free)> encoded(EVP_PKEY2PKCS8(key.get()), PKCS8_PRIV_KEY_INFO_free);
     if (!encoded) return false;
@@ -273,6 +284,30 @@ int main(int argc, char** argv) {
     Bytes rsa_blob, imported_blob, ec_blob, aes_blob, hmac_blob;
     UniquePkey rsa_public(nullptr, EVP_PKEY_free), imported_public(nullptr, EVP_PKEY_free), ec_public(nullptr, EVP_PKEY_free);
     results.check("rsa-generate", [&] { return create(session, keys, rsa_params(), &rsa_blob); });
+    Bytes rsa3072_blob;
+    results.check("rsa-3072-generate", [&] { return create(session, keys, rsa_params(3072), &rsa3072_blob); });
+    results.check("rsa-3072-sign-verify", [&] { auto key = public_key(session, rsa3072_blob);
+        return sign_verify(session, rsa3072_blob, key.get(), KM_PAD_RSA_PKCS1_1_5_SIGN); });
+    results.check("rsa-3072-import-sign-verify", [&] {
+        Bytes encoded, blob;
+        if (!pkcs8(&encoded, 3072) || !create(session, keys, rsa_params(3072), &blob, &encoded) ||
+            blob.size() <= 4 || memcmp(blob.data(), "TSFT", 4) != 0) return false;
+        auto key = public_key(session, blob);
+        return sign_verify(session, blob, key.get(), KM_PAD_RSA_PKCS1_1_5_SIGN);
+    });
+    // The SST token holds 2048-bit RSA; every other size belongs to the software device.
+    static const struct { uint32_t bits; const char* name; const char* owner; } kOwners[] = {
+        {512, "rsa-512-owner-tsft", "TSFT"}, {1024, "rsa-1024-owner-tsft", "TSFT"},
+        {2048, "rsa-2048-owner-ttee", "TTEE"}, {3072, "rsa-3072-owner-tsft", "TSFT"},
+        {4096, "rsa-4096-owner-tsft", "TSFT"},
+    };
+    for (const auto& expected : kOwners) {
+        results.check(expected.name, [&] {
+            Bytes blob;
+            return create(session, keys, rsa_params(expected.bits), &blob) && blob.size() > 4 &&
+                memcmp(blob.data(), expected.owner, 4) == 0;
+        });
+    }
     results.check("rsa-characteristics", [&] {
         bool success = false;
         auto status = session.get()->getKeyCharacteristics(rsa_blob, {}, {}, [&](hal::ErrorCode error, const hal::KeyCharacteristics& characteristics) {

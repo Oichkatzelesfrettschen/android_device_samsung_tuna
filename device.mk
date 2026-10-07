@@ -144,12 +144,14 @@ PRODUCT_PACKAGES += \
     android.hardware.health@2.1-impl \
     android.hardware.health@2.1-service
 
-# Keymaster 3.0 passthrough. createKeymaster3Device() opens keymaster1 and
-# keymaster2 modules only; with no keystore module it serves the software
-# SoftKeymasterDevice, which km_compat wraps for keystore2.
+# Keymaster 3.0 passthrough. createKeymaster3Device() opens keystore.tuna, a
+# keymaster1 module that keeps 2048-bit RSA in the TrustZone SST token and the
+# other algorithms in an embedded SoftKeymasterDevice; km_compat wraps it for
+# keystore2 at the TEE security level.
 PRODUCT_PACKAGES += \
     android.hardware.keymaster@3.0-impl \
-    android.hardware.keymaster@3.0-service
+    android.hardware.keymaster@3.0-service \
+    keystore.tuna
 
 PRODUCT_PACKAGES += \
     android.hardware.gatekeeper@1.0-service.software
@@ -198,6 +200,10 @@ PRODUCT_PACKAGES += \
 # traffic accounting on xt_qtaguid and xt_quota2.
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.kernel.ebpf.supported=false
+
+# The tuna 3.0 kernel implements memfd_create at syscall 385.
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.kernel.memfd_create.supported=true
 
 # adbd takes the blocking FunctionFS transport (daemon/usb_legacy.cpp) with
 # read(2)/write(2) on the bulk endpoints; ro.adb.nonblocking_ffs=false selects

@@ -148,6 +148,8 @@ static const keymaster_key_param_t* parameter(const keymaster_key_param_set_t* p
     return found;
 }
 static bool valid_size(uint32_t bits) { return bits >= 512 && bits <= 4096 && bits % 8 == 0; }
+// The SST token's C_GenerateKeyPair produces 2048-bit RSA keys and refuses 3072 and 4096.
+static bool token_rsa_size(uint32_t bits) { return bits == 2048; }
 static bool valid_exponent(uint64_t exponent) { return exponent >= 3 && (exponent & 1); }
 
 // The tail retains software authorizations; hardware characteristics expose only RSA properties.
@@ -850,7 +852,8 @@ static int open_device(const hw_module_t* module, const char* name, hw_device_t*
 }
 // Keymaster1PassthroughContext::GetKeyFactory sends every algorithm to this
 // device, and requiresSoftwareDigesting passes AES through unwrapped, so AES,
-// HMAC and EC keys live in an embedded pure software SoftKeymasterDevice.
+// HMAC and EC keys, and RSA keys of sizes the token cannot generate, live in an
+// embedded pure software SoftKeymasterDevice.
 struct Composite {
     keymaster1_device_t api = {};
     keymaster1_device_t* tee = nullptr;
@@ -891,7 +894,20 @@ static keymaster_error_t composite_create(const keymaster1_device_t* api,
     std::lock_guard<std::mutex> lock(dev->mutex);
     const auto* algorithm = parameter(params, KM_TAG_ALGORITHM);
     if (!algorithm) return KM_ERROR_INVALID_ARGUMENT;
-    auto* owner = algorithm->enumerated == KM_ALGORITHM_RSA ? dev->tee : software(api);
+    const auto* size = parameter(params, KM_TAG_KEY_SIZE);
+    uint32_t bits = size ? size->integer : 0;
+    // An imported key's own modulus decides its owner; a KEY_SIZE that disagrees is a mismatch.
+    if (algorithm->enumerated == KM_ALGORITHM_RSA && input && format == KM_KEY_FORMAT_PKCS8) {
+        if (!input->data || input->data_length > LONG_MAX) return KM_ERROR_INVALID_ARGUMENT;
+        const uint8_t* cursor = input->data;
+        Unique_PKCS8 encoded(d2i_PKCS8_PRIV_KEY_INFO(nullptr, &cursor, input->data_length), PKCS8_PRIV_KEY_INFO_free);
+        if (!encoded || cursor != input->data + input->data_length) return KM_ERROR_INVALID_ARGUMENT;
+        Unique_EVP_PKEY key(EVP_PKCS82PKEY(encoded.get()), EVP_PKEY_free);
+        if (!key || EVP_PKEY_id(key.get()) != EVP_PKEY_RSA) return KM_ERROR_UNSUPPORTED_ALGORITHM;
+        bits = EVP_PKEY_bits(key.get());
+        if (size && size->integer != bits) return KM_ERROR_IMPORT_PARAMETER_MISMATCH;
+    }
+    auto* owner = algorithm->enumerated == KM_ALGORITHM_RSA && token_rsa_size(bits) ? dev->tee : software(api);
     auto error = input ? owner->import_key(owner, params, format, input, blob, output)
                        : owner->generate_key(owner, params, blob, output);
     if (error == KM_ERROR_OK) error = wrap(owner, dev, blob);
