@@ -199,6 +199,10 @@ PRODUCT_PACKAGES += \
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.kernel.ebpf.supported=false
 
+# The tuna 3.0 kernel implements memfd_create at syscall 385.
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.kernel.memfd_create.supported=true
+
 # adbd takes the blocking FunctionFS transport (daemon/usb_legacy.cpp) with
 # read(2)/write(2) on the bulk endpoints; ro.adb.nonblocking_ffs=false selects
 # it in usb_init() and sys.usb.ffs.aio_compat=true picks read/write over
