@@ -46,6 +46,7 @@
 /data/misc/cameraserver/R5_MVEN003_LD2_ND0_IR0_SH0_FL1_SVEN003_DCCID1044(/.*)?  u:object_r:camera_data_file:s0
 
 # Vendor executables
+/(system/)?vendor/bin/hw/android\.hardware\.gnss@1\.0-service\.legacy  u:object_r:hal_gnss_default_exec:s0
 /(system/)?vendor/bin/dumpdcc           u:object_r:dumpdcc_exec:s0
 /(system/)?vendor/bin/smc_pa_ctrl       u:object_r:smc_pa_ctrl_exec:s0
 /(system/)?vendor/bin/tf_daemon         u:object_r:tee_exec:s0

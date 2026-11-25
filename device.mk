@@ -95,8 +95,8 @@ PRODUCT_PACKAGES += \
 
 # GNSS: the SiRF blob behind the tuna shim
 PRODUCT_PACKAGES += \
-    android.hardware.gnss@1.0-impl \
-    android.hardware.gnss@1.0-service \
+    android.hardware.gnss@1.0-impl.legacy \
+    android.hardware.gnss@1.0-service.legacy \
     gps.tuna \
     libshim_gps_ssl
 
