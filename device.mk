@@ -177,10 +177,11 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PROPERTY_OVERRIDES += \
     debug.stagefright.ccodec=4
 
-# Power
+# Power: matrix 5 lists android.hardware.power only as AIDL. The service wraps
+# power.omap4 from hardware/ti/omap4 libpower.
 PRODUCT_PACKAGES += \
-    android.hardware.power@1.0-impl \
-    android.hardware.power@1.0-service
+    android.hardware.power-service.tuna \
+    power.omap4
 
 # RIL: rild serves radio 1.1 from libril and the legacy wrapper re-registers
 # it as radio 1.4 under the same slot name.

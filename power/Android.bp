@@ -1,0 +1,27 @@
+cc_binary {
+    name: "android.hardware.power-service.tuna",
+    defaults: ["android.hardware.power-ndk_shared"],
+    relative_install_path: "hw",
+    init_rc: ["android.hardware.power-service.tuna.rc"],
+    vintf_fragments: ["android.hardware.power-service.tuna.xml"],
+    vendor: true,
+    cflags: [
+        "-Wall",
+        "-Werror",
+        "-Wextra",
+    ],
+    shared_libs: [
+        "android.hardware.common-V2-ndk",
+        "android.hardware.common.fmq-V1-ndk",
+        "libbase",
+        "libbinder_ndk",
+        "libcutils",
+        "libfmq",
+        "libhardware",
+        "libutils",
+    ],
+    srcs: [
+        "main.cpp",
+        "Power.cpp",
+    ],
+}

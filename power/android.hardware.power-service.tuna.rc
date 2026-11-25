@@ -1,0 +1,4 @@
+service vendor.power-tuna /vendor/bin/hw/android.hardware.power-service.tuna
+    class hal
+    user system
+    group system
