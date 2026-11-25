@@ -197,7 +197,7 @@ PRODUCT_PACKAGES += \
 
 # USB
 PRODUCT_PACKAGES += \
-    android.hardware.usb@1.0-service.basic
+    android.hardware.usb@1.3-service.basic
 
 # The 3.0 kernel has no bpf(2). The legacy-kernel bpfloader and netd read
 # ro.kernel.ebpf.supported (default true) to skip loading BPF objects and keep
@@ -233,7 +233,7 @@ PRODUCT_PACKAGES += \
 
 # Wifi
 PRODUCT_PACKAGES += \
-    android.hardware.wifi@1.0-service-lazy.legacy \
+    android.hardware.wifi@1.0-service.legacy-lazy \
     hostapd \
     libwpa_client \
     wificond \
