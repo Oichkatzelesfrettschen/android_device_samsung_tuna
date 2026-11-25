@@ -52,7 +52,6 @@ PRODUCT_PACKAGES += \
     android.hardware.audio.effect@6.0-impl \
     android.hardware.audio.service \
     audio.primary.tuna \
-    audio.a2dp.default \
     audio.usb.default \
     audio.r_submix.default
 
@@ -70,6 +69,8 @@ PRODUCT_PACKAGES += \
     android.hardware.bluetooth@1.0-impl \
     android.hardware.bluetooth@1.0-service \
     libbt-vendor
+
+PRODUCT_SOONG_NAMESPACES += hardware/broadcom/libbt
 
 # Camera: HAL1 behind the legacy provider; dumpdcc copies the sensor
 # calibration from the camera module flash into the DCC directory that
@@ -257,7 +258,7 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     e2fsck \
     fsck.f2fs \
-    mkfs.f2fs
+    make_f2fs
 
 # Key maps
 PRODUCT_COPY_FILES += \

@@ -137,6 +137,10 @@ WIFI_HIDL_UNIFIED_SUPPLICANT_SERVICE_RC_ENTRY := true
 BOARD_HAVE_BLUETOOTH := true
 BOARD_HAVE_BLUETOOTH_BCM := true
 BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := $(DEVICE_FOLDER)/bluetooth
+# libbt-vendor reads its Soong config from these values; the device table
+# adds BT_WAKE_VIA_USERIAL_IOCTL to the generic one.
+$(call soong_config_set,brcm_libbt,bdroid_buildcfg_include_dir,$(BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR))
+$(call soong_config_set,brcm_libbt,custom_bt_config,//$(DEVICE_FOLDER)/bluetooth:tuna_libbt_vendor_config)
 BOARD_CUSTOM_BT_CONFIG := $(DEVICE_FOLDER)/bluetooth/vnd_tuna.txt
 
 # Network routing

@@ -1,0 +1,4 @@
+filegroup {
+    name: "tuna_libbt_vendor_config",
+    srcs: ["vnd_tuna.txt"],
+}
