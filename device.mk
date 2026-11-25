@@ -181,8 +181,10 @@ PRODUCT_PACKAGES += \
     android.hardware.power@1.0-impl \
     android.hardware.power@1.0-service
 
-# RIL
+# RIL: rild serves radio 1.1 from libril and the legacy wrapper re-registers
+# it as radio 1.4 under the same slot name.
 PRODUCT_PACKAGES += \
+    android.hardware.radio@1.4-service.legacy \
     libsecril-client \
     libsecril-compat \
     libsecril-shim
