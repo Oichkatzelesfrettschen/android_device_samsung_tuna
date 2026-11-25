@@ -172,9 +172,10 @@ PRODUCT_COPY_FILES += \
     frameworks/av/media/libstagefright/data/media_codecs_google_telephony.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_codecs_google_telephony.xml \
     frameworks/av/media/libstagefright/data/media_codecs_google_video.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_codecs_google_video.xml
 
+# 22.2 lists every Codec 2.0 component beside OMX with OMX ranked first; the
+# DOMX components stay HIDL IOmx 1.0 under ACodec.
 PRODUCT_PROPERTY_OVERRIDES += \
-    debug.stagefright.ccodec=0 \
-    persist.media.treble_omx=false
+    debug.stagefright.ccodec=4
 
 # Power
 PRODUCT_PACKAGES += \
