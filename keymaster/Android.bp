@@ -5,8 +5,8 @@ cc_binary {
     cpp_std: "c++17",
     cflags: ["-Wall", "-Wextra", "-Werror"],
     shared_libs: [
-        "android.hardware.security.keymint-V1-ndk_platform",
-        "android.system.keystore2-V1-ndk_platform",
+        "android.hardware.security.keymint-V3-ndk",
+        "android.system.keystore2-V4-ndk",
         "libbinder_ndk",
         "libkeymint_support",
     ],
