@@ -77,9 +77,9 @@ PRODUCT_PACKAGES += \
 # handheld_product.mk, which camera2.portability.force_api=1 (omap4.mk)
 # keeps on the API1 path.
 PRODUCT_PACKAGES += \
-    android.hardware.camera.provider@2.4-impl-legacy \
+    android.hardware.camera.provider@2.4-impl \
     android.hardware.camera.provider@2.4-service \
-    camera.device@1.0-impl-legacy \
+    camera.device@1.0-impl \
     camera.omap4 \
     dumpdcc
 

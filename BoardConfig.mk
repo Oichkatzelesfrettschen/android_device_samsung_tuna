@@ -86,7 +86,9 @@ NUM_FRAMEBUFFER_SURFACE_BUFFERS := 3
 TARGET_RUNNING_WITHOUT_SYNC_FRAMEWORK := true
 TARGET_DISABLE_POSTRENDER_CLEANUP := true
 
-# Camera
+# Camera. The camera module is HALv1 only; frameworks/av serves its
+# device@1.0 devices to Camera1 clients when legacy_hal1 is set.
+$(call soong_config_set,camera,legacy_hal1,true)
 BOARD_CANT_REALLOCATE_OMX_BUFFERS := true
 TARGET_CAMERASERVICE_CLOSES_NATIVE_HANDLES := true
 TI_CAMERAHAL_USES_LEGACY_DOMX_DCC := true
