@@ -80,6 +80,9 @@ TARGET_PROCESS_SDK_VERSION_OVERRIDE := \
 TARGET_LD_SHIM_LIBS := \
     /system/vendor/lib/lib_gsd4t_jellybean.so|libprocessgroup.so \
     /system/vendor/lib/lib_gsd4t_jellybean.so|libshim_gps_ssl.so
+# The owner bionic linker reads both lists from soong config in 22.2.
+$(call soong_config_set,bionic_linker,process_sdk_version_overrides,$(strip $(TARGET_PROCESS_SDK_VERSION_OVERRIDE)))
+$(call soong_config_set,bionic_linker,ld_shim_libs,$(subst $(space),:,$(strip $(TARGET_LD_SHIM_LIBS))))
 
 # Graphics
 NUM_FRAMEBUFFER_SURFACE_BUFFERS := 3
