@@ -25,9 +25,6 @@ TARGET_NO_RADIOIMAGE := true
 TARGET_BOARD_INFO_FILE := $(DEVICE_FOLDER)/board-info.txt
 TARGET_BOOTLOADER_BOARD_NAME := tuna
 
-# Binder API version
-TARGET_USES_64_BIT_BINDER := true
-
 # The kernel carries memfd_create (syscall 385) from the 3.17 series.
 TARGET_HAS_MEMFD_BACKPORT := true
 
