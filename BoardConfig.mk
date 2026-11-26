@@ -66,6 +66,7 @@ PVR_KM_LLVM_IAS := 1
 
 # Treble: no vendor partition and no VNDK. /vendor is /system/vendor.
 DEVICE_MANIFEST_FILE := $(DEVICE_FOLDER)/manifest.xml
+DEVICE_FRAMEWORK_COMPATIBILITY_MATRIX_FILE := $(DEVICE_FOLDER)/vintf/compatibility_matrix.xml
 PRODUCT_ENFORCE_VINTF_MANIFEST_OVERRIDE := true
 
 # Old blobs
