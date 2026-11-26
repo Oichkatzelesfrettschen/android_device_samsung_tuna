@@ -102,6 +102,9 @@ TARGET_USERIMAGES_USE_EXT4 := true
 TARGET_USERIMAGES_USE_F2FS := true
 BOARD_BOOTIMAGE_PARTITION_SIZE := 8388608
 BOARD_RECOVERYIMAGE_PARTITION_SIZE := 12517376
+# Single-slot partitions: build/make/core/board_config.mk defaults an unset
+# AB_OTA_UPDATER to true, and the OTA generator then demands ab_partitions.txt.
+AB_OTA_UPDATER := false
 BOARD_CACHEIMAGE_FILE_SYSTEM_TYPE := ext4
 # The REPIT table (system=2G, cache=128M) gives cache 131072 KiB (p11) and
 # userdata sectors 4612096-30775295 (p12). A non-A/B 12 device keeps only
