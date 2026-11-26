@@ -15,6 +15,8 @@ LOCAL_SHARED_LIBRARIES := \
     libhardware_legacy \
     liblog
 
+LOCAL_HEADER_LIBRARIES := ril_headers
+
 LOCAL_MODULE:= libsecril-client
 LOCAL_CFLAGS := -Wall -Werror
 
