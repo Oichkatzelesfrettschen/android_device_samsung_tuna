@@ -1,3 +1,5 @@
+type tuna_camera_data_file, file_type, data_file_type;
+type tuna_radio_data_file, file_type, data_file_type;
 type radio_efs_file, file_type, mlstrustedobject;
 type tee_file, file_type;
 type sysfs_tuna_otg, fs_type, sysfs_type;
