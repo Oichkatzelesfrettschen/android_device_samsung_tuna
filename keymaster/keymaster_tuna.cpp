@@ -466,18 +466,22 @@ static keymaster_error_t import_key(const keymaster1_device_t* api, const keymas
     if (!pkey || EVP_PKEY_id(pkey.get()) != EVP_PKEY_RSA) return KM_ERROR_UNSUPPORTED_ALGORITHM;
     Unique_RSA rsa(EVP_PKEY_get1_RSA(pkey.get()), RSA_free);
     if (!rsa || RSA_check_key(rsa.get()) != 1) return KM_ERROR_INVALID_ARGUMENT;
-    uint32_t bits = BN_num_bits(rsa->n);
-    if (!valid_size(bits) || BN_num_bits(rsa->e) > 64) return KM_ERROR_UNSUPPORTED_KEY_SIZE;
+    const BIGNUM *key_n, *key_e, *key_d, *key_p, *key_q, *key_dmp1, *key_dmq1, *key_iqmp;
+    RSA_get0_key(rsa.get(), &key_n, &key_e, &key_d);
+    RSA_get0_factors(rsa.get(), &key_p, &key_q);
+    RSA_get0_crt_params(rsa.get(), &key_dmp1, &key_dmq1, &key_iqmp);
+    uint32_t bits = BN_num_bits(key_n);
+    if (!valid_size(bits) || BN_num_bits(key_e) > 64) return KM_ERROR_UNSUPPORTED_KEY_SIZE;
     uint8_t exponent_bytes[8] = {};
-    int exponent_length = BN_num_bytes(rsa->e);
-    BN_bn2bin(rsa->e, exponent_bytes + 8 - exponent_length);
+    int exponent_length = BN_num_bytes(key_e);
+    BN_bn2bin(key_e, exponent_bytes + 8 - exponent_length);
     uint64_t exponent = read_integer(exponent_bytes, 8);
     if (!valid_exponent(exponent)) return KM_ERROR_INVALID_ARGUMENT;
     const auto* requested_size = parameter(params, KM_TAG_KEY_SIZE);
     const auto* requested_exponent = parameter(params, KM_TAG_RSA_PUBLIC_EXPONENT);
     if ((requested_size && requested_size->integer != bits) ||
         (requested_exponent && requested_exponent->long_integer != exponent)) return KM_ERROR_IMPORT_PARAMETER_MISMATCH;
-    const BIGNUM* numbers[] = {rsa->n, rsa->e, rsa->d, rsa->p, rsa->q, rsa->dmp1, rsa->dmq1, rsa->iqmp};
+    const BIGNUM* numbers[] = {key_n, key_e, key_d, key_p, key_q, key_dmp1, key_dmq1, key_iqmp};
     CK_ATTRIBUTE_TYPE types[] = {CKA_MODULUS, CKA_PUBLIC_EXPONENT, CKA_PRIVATE_EXPONENT,
         CKA_PRIME_1, CKA_PRIME_2, CKA_EXPONENT_1, CKA_EXPONENT_2, CKA_COEFFICIENT};
     Unique_ByteArray converted[8];
@@ -543,9 +547,12 @@ static keymaster_error_t export_key(const keymaster1_device_t* api, keymaster_ke
     Unique_RSA rsa(RSA_new(), RSA_free);
     Unique_EVP_PKEY pkey(EVP_PKEY_new(), EVP_PKEY_free);
     if (!rsa || !pkey) return KM_ERROR_MEMORY_ALLOCATION_FAILED;
-    rsa->n = BN_bin2bn(modulus.get(), modulus.length(), nullptr);
-    rsa->e = BN_bin2bn(exponent.get(), exponent.length(), nullptr);
-    if (!rsa->n || !rsa->e) return KM_ERROR_MEMORY_ALLOCATION_FAILED;
+    BIGNUM* public_n = BN_bin2bn(modulus.get(), modulus.length(), nullptr);
+    BIGNUM* public_e = BN_bin2bn(exponent.get(), exponent.length(), nullptr);
+    if (!public_n || !public_e || !RSA_set0_key(rsa.get(), public_n, public_e, nullptr)) {
+        BN_free(public_n); BN_free(public_e);
+        return KM_ERROR_MEMORY_ALLOCATION_FAILED;
+    }
     if (EVP_PKEY_assign_RSA(pkey.get(), rsa.get()) != 1) return KM_ERROR_UNKNOWN_ERROR;
     (void)rsa.release();
     int length = i2d_PUBKEY(pkey.get(), nullptr);
@@ -595,7 +602,7 @@ static int private_transform(RSA* rsa, uint8_t* output, const uint8_t* input, si
     auto* operation = static_cast<Operation*>(RSA_get_ex_data(rsa, rsa_operation_index));
     if (!operation || length != static_cast<size_t>(RSA_size(rsa)) || length > MAX_RSA_BYTES) return 0;
     uint8_t modulus[MAX_RSA_BYTES] = {};
-    if (BN_bn2bin_padded(modulus, length, rsa->n) != 1 || memcmp(input, modulus, length) >= 0) return 0;
+    if (BN_bn2bin_padded(modulus, length, RSA_get0_n(rsa)) != 1 || memcmp(input, modulus, length) >= 0) return 0;
     CryptoSession session(operation->primary);
     ObjectHandle public_key(&session), private_key(&session);
     if (keyblob_restore(&session, &operation->blob, &public_key, &private_key)) return 0;
@@ -731,8 +738,13 @@ static keymaster_error_t finish(const keymaster1_device_t* api, keymaster_operat
     Unique_RSA rsa(RSA_new_method(engine.get()), RSA_free);
     const RSA* public_rsa = EVP_PKEY_get0_RSA(operation->public_key);
     if (!rsa || !public_rsa) return KM_ERROR_UNKNOWN_ERROR;
-    rsa->n = BN_dup(public_rsa->n); rsa->e = BN_dup(public_rsa->e);
-    if (!rsa->n || !rsa->e || !RSA_set_ex_data(rsa.get(), rsa_operation_index, operation))
+    BIGNUM* copy_n = BN_dup(RSA_get0_n(public_rsa));
+    BIGNUM* copy_e = BN_dup(RSA_get0_e(public_rsa));
+    if (!copy_n || !copy_e || !RSA_set0_key(rsa.get(), copy_n, copy_e, nullptr)) {
+        BN_free(copy_n); BN_free(copy_e);
+        return KM_ERROR_MEMORY_ALLOCATION_FAILED;
+    }
+    if (!RSA_set_ex_data(rsa.get(), rsa_operation_index, operation))
         return KM_ERROR_MEMORY_ALLOCATION_FAILED;
     if (!EVP_PKEY_assign_RSA(pkey.get(), rsa.get())) return KM_ERROR_UNKNOWN_ERROR;
     (void)rsa.release();
