@@ -30,6 +30,7 @@ LOCAL_MODULE := lights.tuna
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/../kernel-headers
 
 LOCAL_MODULE_TAGS := optional
+LOCAL_HEADER_LIBRARIES := libhardware_headers libcutils_headers liblog_headers libutils_headers
 
 LOCAL_CFLAGS := -Wall -Werror
 

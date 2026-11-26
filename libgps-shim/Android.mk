@@ -23,6 +23,7 @@ LOCAL_SHARED_LIBRARIES := \
 	liblog
 
 LOCAL_MODULE := gps.$(TARGET_BOOTLOADER_BOARD_NAME)
+LOCAL_HEADER_LIBRARIES := libhardware_headers libcutils_headers liblog_headers libutils_headers
 LOCAL_MODULE_RELATIVE_PATH := hw
 LOCAL_CFLAGS := -Wall -Werror
 LOCAL_VENDOR_MODULE := true

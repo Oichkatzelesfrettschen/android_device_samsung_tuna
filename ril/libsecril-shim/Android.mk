@@ -3,6 +3,8 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE_TAGS := optional
 
+LOCAL_HEADER_LIBRARIES := ril_headers libhardware_headers libcutils_headers liblog_headers libutils_headers
+
 LOCAL_SRC_FILES := \
 	secril-shim.cpp
 

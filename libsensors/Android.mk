@@ -25,6 +25,7 @@ LOCAL_MODULE_RELATIVE_PATH := hw
 LOCAL_VENDOR_MODULE := true
 
 LOCAL_MODULE_TAGS := optional
+LOCAL_HEADER_LIBRARIES := libhardware_headers libcutils_headers liblog_headers libutils_headers
 
 LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)/mlsdk/platform/include \
