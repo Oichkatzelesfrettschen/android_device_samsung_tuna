@@ -18,6 +18,11 @@ log_to_kernel() {
 if [ -e /tee/smc ]; then
     log_to_kernel "/tee is initialized for SMC"
     setprop vendor.tee_fs.ready true
+    # init.rc's post-fs-data blocks in "vdc keymaster earlyBootEnded" until
+    # keystore2 reaches the keymaster HAL, and keystore.tuna needs tf_daemon;
+    # property triggers wait behind that action, control messages do not.
+    setprop ctl.start smc_pa_wvdrm
+    setprop ctl.start tf_daemon
     exit 0
 fi
 
