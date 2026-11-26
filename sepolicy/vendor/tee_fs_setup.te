@@ -6,7 +6,7 @@ init_daemon_domain(tee_fs_setup)
 
 allow tee_fs_setup vendor_shell_exec:file rx_file_perms;
 allow tee_fs_setup vendor_toolbox_exec:file rx_file_perms;
-allow tee_fs_setup system_file:file rx_file_perms;
+allow tee_fs_setup vendor_file:file rx_file_perms;
 allow tee_fs_setup block_device:dir search;
 allow tee_fs_setup tee_block_device:blk_file rw_file_perms;
 allow tee_fs_setup kmsg_device:chr_file w_file_perms;

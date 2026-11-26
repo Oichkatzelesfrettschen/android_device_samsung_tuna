@@ -46,6 +46,10 @@ PRODUCT_COPY_FILES += \
     $(DEVICE_FOLDER)/rootdir/ueventd.tuna.rc:$(TARGET_COPY_OUT_VENDOR)/etc/ueventd.rc \
     $(DEVICE_FOLDER)/rootdir/tee-fs-setup.sh:$(TARGET_COPY_OUT_VENDOR)/bin/tee-fs-setup.sh
 
+# The formatter that tee-fs-setup.sh runs; a vendor domain cannot execute /system/bin.
+PRODUCT_PACKAGES += \
+    mke2fs.vendor
+
 # Audio
 PRODUCT_PACKAGES += \
     android.hardware.audio@6.0-impl \

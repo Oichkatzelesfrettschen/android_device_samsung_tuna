@@ -1,4 +1,4 @@
-#!/system/bin/sh
+#!/vendor/bin/sh
 # Prepares the dgs partition for the TrustZone secure storage. A mounted
 # /tee with its smc directory sets vendor.tee_fs.ready, which starts
 # smc_pa_wvdrm and tf_daemon. A partition still blank from the factory is
@@ -21,13 +21,13 @@ if [ -e /tee/smc ]; then
     exit 0
 fi
 
-actual_hash="$(/system/bin/sha1sum "${DEVICE}")"
+actual_hash="$(/vendor/bin/toybox_vendor sha1sum "${DEVICE}")"
 if [ "${actual_hash}" != "${EXPECTED_HASH}  ${DEVICE}" ]; then
     log_to_kernel "unexpected hash '${actual_hash}', leaving the partition alone; SMC stays off"
     exit 0
 fi
 
-if /system/bin/mke2fs -t ext4 -b 4096 "${DEVICE}" > /dev/kmsg 2>&1; then
+if /vendor/bin/mke2fs -t ext4 -b 4096 "${DEVICE}" > /dev/kmsg 2>&1; then
     log_to_kernel "formatted dgs for SMC"
     setprop vendor.tee_fs.formatted true
 else
