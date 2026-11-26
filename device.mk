@@ -212,6 +212,12 @@ PRODUCT_PACKAGES += \
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.kernel.ebpf.supported=false
 
+# Linux 3.4 has no userfaultfd or MREMAP_DONTUNMAP, so ART runs the
+# concurrent copying collector. With the default setting the build tags an
+# unknown kernel as uffd-capable and dexpreopts the boot image and apps with
+# -Xgc:CMC (soong dexpreopt buildUffdGcFlag).
+PRODUCT_ENABLE_UFFD_GC := false
+
 # The tuna 3.0 kernel implements memfd_create at syscall 385.
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.kernel.memfd_create.supported=true
