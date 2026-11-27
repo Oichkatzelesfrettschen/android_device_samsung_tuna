@@ -26,6 +26,13 @@ $(call inherit-product, hardware/ti/omap4/omap4.mk)
 # The shipping level selects the VINTF framework compatibility matrix.
 $(call inherit-product, $(SRC_TARGET_DIR)/product/product_launched_with_k.mk)
 
+# The 3.4 dm-verity target takes exactly ten table arguments, and apexd adds
+# optional arguments to the verity table of every APEX it mounts from /data.
+# Uncompressed APEXes stay on /system, where apexd mounts them without one.
+# product_config.mk applies the override after every product makefile, so it
+# outranks the value that base_system.mk inherits from updatable_apex.mk.
+OVERRIDE_PRODUCT_COMPRESSED_APEX := false
+
 DEVICE_PACKAGE_OVERLAYS += $(DEVICE_FOLDER)/overlay
 
 PRODUCT_AAPT_CONFIG := normal
